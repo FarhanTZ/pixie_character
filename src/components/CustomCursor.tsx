@@ -1,4 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { PixarCharacter } from '../data/characters';
+
+interface CustomCursorProps {
+  character?: PixarCharacter;
+}
 
 interface Particle {
   x: number;
@@ -12,15 +17,7 @@ interface Particle {
   life: number;
 }
 
-const TRAIL_COLORS = [
-  '#F472B6', // Pink
-  '#C084FC', // Violet
-  '#38BDF8', // Cyan
-  '#FBBF24', // Amber
-  '#34D399', // Mint Green
-];
-
-export const CustomCursor: React.FC = () => {
+export const CustomCursor: React.FC<CustomCursorProps> = ({ character }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorDotRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef<{ x: number; y: number; moved: boolean }>({
@@ -29,6 +26,21 @@ export const CustomCursor: React.FC = () => {
     moved: false,
   });
   const particlesRef = useRef<Particle[]>([]);
+  const activeColorsRef = useRef<string[]>(['#F472B6', '#C084FC', '#38BDF8', '#FBBF24']);
+
+  // Dynamically adapt trail palette based on active Character Theme & Accent Colors
+  useEffect(() => {
+    if (character) {
+      activeColorsRef.current = [
+        character.themeColor,
+        character.accentColor,
+        '#FFFFFF',
+        character.themeColor,
+      ];
+    } else {
+      activeColorsRef.current = ['#F472B6', '#C084FC', '#38BDF8', '#FBBF24'];
+    }
+  }, [character]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -54,19 +66,20 @@ export const CustomCursor: React.FC = () => {
         cursorDotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
       }
 
-      // Spawn 2-3 fluffy spark particles on move
+      // Spawn 2-3 magical spark particles matching character element aura
+      const colors = activeColorsRef.current;
       for (let i = 0; i < 2; i++) {
-        const color = TRAIL_COLORS[Math.floor(Math.random() * TRAIL_COLORS.length)];
+        const color = colors[Math.floor(Math.random() * colors.length)];
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 1.5 + 0.5;
         particlesRef.current.push({
           x: e.clientX,
           y: e.clientY,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed + 0.4, // Slight gravity fall
+          vy: Math.sin(angle) * speed + 0.35, // Soft floating drift
           size: Math.random() * 5 + 3,
           color,
-          alpha: 0.9,
+          alpha: 0.95,
           maxLife: Math.random() * 25 + 20,
           life: 0,
         });
@@ -75,7 +88,7 @@ export const CustomCursor: React.FC = () => {
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Render 60FPS loop for magical cursor trail
+    // Render 60FPS loop for character element aura trail
     const renderLoop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -91,12 +104,12 @@ export const CustomCursor: React.FC = () => {
           continue;
         }
 
-        // Draw soft glowing fluffy spark
+        // Draw glowing particle with dynamic element glow
         ctx.save();
         ctx.globalAlpha = p.alpha;
         ctx.fillStyle = p.color;
         ctx.shadowColor = p.color;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 10;
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * (1 - p.life / p.maxLife), 0, Math.PI * 2);
@@ -116,17 +129,26 @@ export const CustomCursor: React.FC = () => {
     };
   }, []);
 
+  const currentColor = character ? character.themeColor : '#F472B6';
+  const currentAccent = character ? character.accentColor : '#38BDF8';
+
   return (
     <div className="pointer-events-none fixed inset-0 z-[100] overflow-hidden">
-      {/* Particle Canvas Trail (z-[100] agar tampil di atas layar opening) */}
+      {/* Dynamic Element Particle Canvas Trail */}
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      {/* Glowing Starry Cursor Follower */}
+      {/* Glowing Starry Cursor Follower that adapts to Character Aura */}
       <div
         ref={cursorDotRef}
         className="fixed top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full pointer-events-none transition-transform duration-75 ease-out will-change-transform"
       >
-        <div className="w-full h-full rounded-full bg-gradient-to-r from-pink-400 via-fuchsia-400 to-cyan-300 shadow-[0_0_15px_rgba(244,114,182,0.9)] animate-pulse" />
+        <div
+          className="w-full h-full rounded-full transition-colors duration-500 animate-pulse"
+          style={{
+            background: `radial-gradient(circle, #FFFFFF 20%, ${currentColor} 60%, ${currentAccent} 100%)`,
+            boxShadow: `0 0 16px ${currentColor}`,
+          }}
+        />
       </div>
     </div>
   );

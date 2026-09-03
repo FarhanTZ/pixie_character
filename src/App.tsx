@@ -41,6 +41,8 @@ export default function App() {
   const [selectedCharacter, setSelectedCharacter] = useState<PixarCharacter | null>(initial.selected);
 
   const currentCharacter = PIXAR_CHARACTERS[currentIndex];
+  // Determine the active character (either from detail page or showcase)
+  const activeChar = selectedCharacter || currentCharacter;
 
   // Sync browser URL with current navigation & selection
   const updateUrl = (char: PixarCharacter | null) => {
@@ -145,8 +147,8 @@ export default function App() {
 
   return (
     <div className="relative w-full min-h-screen bg-[#070709] text-white">
-      {/* Pixar Magical Particle Spark Cursor Trail */}
-      <CustomCursor />
+      {/* Pixar Magical Particle Spark Cursor Trail dengan Aura yang Beradaptasi dengan Karakter Aktif */}
+      <CustomCursor character={showIntro ? undefined : activeChar} />
 
       {/* Pixar Iconic Opening Intro Animation */}
       {showIntro && <IntroAnimation onComplete={() => setShowIntro(false)} />}
