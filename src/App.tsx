@@ -9,6 +9,7 @@ import { BackgroundFX } from './components/BackgroundFX';
 import { SelectButton } from './components/SelectButton';
 import { CharacterDetailPage } from './components/CharacterDetailPage';
 import { IntroAnimation } from './components/IntroAnimation';
+import { CustomCursor } from './components/CustomCursor';
 
 export default function App() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
@@ -144,7 +145,10 @@ export default function App() {
 
   return (
     <div className="relative w-full min-h-screen bg-[#070709] text-white">
-      {/* Pixar Iconic 3D Lamp Opening Intro Animation */}
+      {/* Pixar Magical Particle Spark Cursor Trail */}
+      <CustomCursor />
+
+      {/* Pixar Iconic Opening Intro Animation */}
       {showIntro && <IntroAnimation onComplete={() => setShowIntro(false)} />}
 
       <AnimatePresence mode="wait">
