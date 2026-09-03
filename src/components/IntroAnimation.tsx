@@ -147,7 +147,7 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
             <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/15 via-pink-400/20 to-yellow-300/15 backdrop-blur-2xl" />
           </div>
 
-          {/* BOLA-BOLA BULU (IDLE FLUFFY POM-POMS) TETAP DIPERTAHANKAN MELAYANG INDAH DI BACKGROUND */}
+          {/* BOLA-BOLA BULU DI BACKGROUND */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {Array.from({ length: 18 }).map((_, i) => (
               <motion.div
@@ -191,7 +191,7 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
             ))}
           </div>
 
-          {/* FLUFFY FUR BURST PARTICLES (Exploding outward upon clicking START GAME) */}
+          {/* FLUFFY FUR BURST PARTICLES */}
           {phase === 'burst' && (
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30">
               {particles.map((p) => (
@@ -227,7 +227,7 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
             </div>
           )}
 
-          {/* ANIMATED PIXAR LOGO CONTAINER (TETAP MELAYANG TERUS DENGAN SOLID 100%) */}
+          {/* ANIMATED PIXAR LOGO CONTAINER */}
           <div className="relative z-10 flex flex-col items-center justify-center p-4 sm:p-8 w-full">
             <motion.div
               animate={
@@ -270,7 +270,7 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
               />
             </motion.div>
 
-            {/* START GAME BUTTON */}
+            {/* START GAME BUTTON + MADE BY FARHANTZ (Di Bawah Tombol START GAME) */}
             <AnimatePresence>
               {!isPlaying && (
                 <motion.div
@@ -278,7 +278,7 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 25, scale: 0.8 }}
                   transition={{ duration: 0.4 }}
-                  className="mt-10 sm:mt-12 flex flex-col items-center"
+                  className="mt-10 sm:mt-12 flex flex-col items-center gap-3.5"
                 >
                   <motion.button
                     onClick={handleStartGame}
@@ -317,6 +317,11 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
                       </svg>
                     </div>
                   </motion.button>
+
+                  {/* MADE BY FARHANTZ (Tepat di Bawah Tombol START GAME) */}
+                  <span className="text-[10px] sm:text-xs font-mono font-bold tracking-[0.35em] uppercase text-slate-700/80 drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">
+                    MADE BY FARHANTZ
+                  </span>
                 </motion.div>
               )}
             </AnimatePresence>
