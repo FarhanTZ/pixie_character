@@ -14,54 +14,54 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
 }) => {
   return (
     <>
-      {/* Left Navigation Button */}
-      <div className="fixed left-4 sm:left-10 top-1/2 -translate-y-1/2 z-30">
+      {/* PREVIOUS BUTTON (Left Side - Responsive position and size) */}
+      <div className="fixed top-1/2 -translate-y-1/2 left-2 sm:left-6 lg:left-8 z-30 select-none">
         <motion.button
           onClick={onPrev}
-          whileHover={{ scale: 1.15, x: -4 }}
+          whileHover={{ scale: 1.1, x: -3 }}
           whileTap={{ scale: 0.9 }}
           aria-label="Previous Character"
-          className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xl border border-white/20 hover:border-white/60 flex items-center justify-center text-white transition-colors duration-300 shadow-2xl cursor-pointer group"
+          className="w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full border border-white/60 hover:border-white backdrop-blur-2xl bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition-all cursor-pointer shadow-lg hover:shadow-2xl active:scale-95 group"
           style={{
-            boxShadow: `0 0 30px rgba(0,0,0,0.6)`,
+            boxShadow: `0 8px 32px 0 rgba(255, 255, 255, 0.15), 0 0 20px ${accentColor}30`,
           }}
         >
           <svg
-            className="w-6 h-6 sm:w-8 sm:h-8 group-hover:-translate-x-1 transition-transform"
+            className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 transition-transform group-hover:-translate-x-0.5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M15 18l-6-6 6-6" />
+            <polyline points="15 18 9 12 15 6" />
           </svg>
         </motion.button>
       </div>
 
-      {/* Right Navigation Button */}
-      <div className="fixed right-4 sm:right-10 top-1/2 -translate-y-1/2 z-30">
+      {/* NEXT BUTTON (Right Side - Responsive position and size) */}
+      <div className="fixed top-1/2 -translate-y-1/2 right-2 sm:right-6 lg:right-8 z-30 select-none">
         <motion.button
           onClick={onNext}
-          whileHover={{ scale: 1.15, x: 4 }}
+          whileHover={{ scale: 1.1, x: 3 }}
           whileTap={{ scale: 0.9 }}
           aria-label="Next Character"
-          className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xl border border-white/20 hover:border-white/60 flex items-center justify-center text-white transition-colors duration-300 shadow-2xl cursor-pointer group"
+          className="w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full border border-white/60 hover:border-white backdrop-blur-2xl bg-white/20 hover:bg-white/40 flex items-center justify-center text-white transition-all cursor-pointer shadow-lg hover:shadow-2xl active:scale-95 group"
           style={{
-            boxShadow: `0 0 30px rgba(0,0,0,0.6)`,
+            boxShadow: `0 8px 32px 0 rgba(255, 255, 255, 0.15), 0 0 20px ${accentColor}30`,
           }}
         >
           <svg
-            className="w-6 h-6 sm:w-8 sm:h-8 group-hover:translate-x-1 transition-transform"
+            className="w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8 transition-transform group-hover:translate-x-0.5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M9 18l6-6-6-6" />
+            <polyline points="9 18 15 12 9 6" />
           </svg>
         </motion.button>
       </div>

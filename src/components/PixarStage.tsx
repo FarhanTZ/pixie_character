@@ -34,7 +34,7 @@ const bgVariants: Variants = {
   }),
 };
 
-// Smooth Spring + Shrink Character Transition
+// Smooth Desktop Spring Character Transition
 const charVariants: Variants = {
   enter: (dir: number) => ({
     opacity: 0,
@@ -69,8 +69,19 @@ const charVariants: Variants = {
 export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isNearCursor, setIsNearCursor] = useState<boolean>(false);
+  const [isMobilePlaying, setIsMobilePlaying] = useState<boolean>(false);
 
-  // Handle Proximity & Video Playback
+  // Reset states when character switches
+  useEffect(() => {
+    setIsMobilePlaying(false);
+    setIsNearCursor(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [character]);
+
+  // DESKTOP ONLY: Proximity Mouse Move Playback (HANYA DIDEKATI, TIDAK ADA KLIK)
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const centerX = window.innerWidth / 2;
@@ -96,20 +107,38 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Control HTML5 video playback seamlessly on proximity
+  // Sync video play/pause
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
-    if (isNearCursor) {
-      vid.play().catch(() => {});
+    const shouldPlay = isNearCursor || isMobilePlaying;
+
+    if (shouldPlay) {
+      const playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {});
+      }
     } else {
       vid.pause();
     }
-  }, [isNearCursor, character]);
+  }, [isNearCursor, isMobilePlaying]);
+
+  // KHUSUS TOUCHSCREEN / MOBILE ONLY (Desktop klik diabaikan)
+  const handleTouchToggle = () => {
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isTouch) {
+      setIsMobilePlaying((prev) => !prev);
+    }
+  };
+
+  const isVideoActive = isNearCursor || isMobilePlaying;
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
+    <div
+      onTouchEnd={handleTouchToggle}
+      className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none"
+    >
       {/* 1. SEPARATE STATIC BACKGROUND LAYER */}
       <AnimatePresence custom={direction} mode="sync">
         <motion.div
@@ -119,7 +148,7 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
           initial="enter"
           animate="center"
           exit="exit"
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 w-full h-full pointer-events-none"
         >
           <img
             src={character.bgImage}
@@ -129,7 +158,7 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
         </motion.div>
       </AnimatePresence>
 
-      {/* 2. SEPARATE STATIC FOREGROUND CHARACTER LAYER (Crossfade saat video aktif) */}
+      {/* 2. SEPARATE STATIC FOREGROUND CHARACTER LAYER */}
       <div className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
@@ -144,18 +173,18 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
             <img
               src={character.characterImage}
               alt={character.name}
-              className={`w-auto h-[90vh] sm:h-[94vh] max-w-[92vw] object-contain pixar-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)] transition-opacity duration-500 ${
-                isNearCursor ? 'opacity-0' : 'opacity-100'
+              className={`w-auto h-[90vh] sm:h-[94vh] max-w-[96vw] sm:max-w-[92vw] object-contain pixar-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)] transition-opacity duration-500 ${
+                isVideoActive ? 'opacity-0' : 'opacity-100'
               }`}
             />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* 3. DIRECT FULLSCREEN VIDEO LAYER (Ultra Smooth 60fps Native Video Playback saat Kursor Dekat) */}
+      {/* 3. DIRECT FULLSCREEN VIDEO LAYER */}
       <div
         className={`absolute inset-0 w-full h-full pointer-events-none z-15 transition-opacity duration-700 ${
-          isNearCursor ? 'opacity-100' : 'opacity-0'
+          isVideoActive ? 'opacity-100' : 'opacity-0'
         }`}
       >
         <video
