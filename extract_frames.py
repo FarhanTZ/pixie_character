@@ -9,8 +9,8 @@ video_map = {
     'pixie5': 'public/assets/pixie/video/pixie5.mp4',
 }
 
-# Number of sampled frames (40-60 frames is ultra smooth and fast to load)
-NUM_FRAMES = 48
+# Extract all 96-120 high density frames for buttery smooth 60fps scrolling
+NUM_FRAMES = 96
 
 for name, video_path in video_map.items():
     out_dir = f'public/assets/pixie/frames/{name}'
@@ -18,7 +18,7 @@ for name, video_path in video_map.items():
     
     cap = cv2.VideoCapture(video_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    print(f"Extracting {name} ({total_frames} total frames -> {NUM_FRAMES} samples)...")
+    print(f"Extracting high-density frames for {name} ({total_frames} frames -> {NUM_FRAMES} samples)...")
     
     step = total_frames / NUM_FRAMES
     for i in range(NUM_FRAMES):
@@ -27,8 +27,7 @@ for name, video_path in video_map.items():
         ret, frame = cap.read()
         if ret:
             out_file = os.path.join(out_dir, f"frame_{i:03d}.webp")
-            # Save as high quality webp
-            cv2.imwrite(out_file, frame, [cv2.IMWRITE_WEBP_QUALITY, 88])
+            cv2.imwrite(out_file, frame, [cv2.IMWRITE_WEBP_QUALITY, 90])
     cap.release()
 
-print("All frames extracted successfully!")
+print("High-density 96-frame extraction completed successfully!")
