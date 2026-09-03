@@ -15,7 +15,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
   const targetFrameRef = useRef<number>(0);
   const currentFrameRef = useRef<number>(0);
 
-  // Preload all 96 extracted frames
+  // Preload all 96 extracted frames (full video frames)
   useEffect(() => {
     const imgs: HTMLImageElement[] = [];
     for (let i = 0; i < character.frameCount; i++) {
@@ -47,7 +47,6 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
       if (canvas && imagesRef.current.length > 0) {
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          // Smooth fluid lerp interpolation
           currentFrameRef.current += (targetFrameRef.current - currentFrameRef.current) * 0.16;
           const frameIdx = Math.max(
             0,
@@ -56,8 +55,11 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
           const img = imagesRef.current[frameIdx];
 
           if (img && img.complete && img.naturalWidth > 0) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            const parentWidth = canvas.parentElement?.clientWidth || window.innerWidth;
+            const parentHeight = canvas.parentElement?.clientHeight || window.innerHeight;
+
+            canvas.width = parentWidth;
+            canvas.height = parentHeight;
 
             const hRatio = canvas.width / img.naturalWidth;
             const vRatio = canvas.height / img.naturalHeight;
@@ -99,17 +101,30 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6 }}
       ref={containerRef}
-      className="relative w-full min-h-[400vh] bg-[#070709] text-white select-none"
+      className="relative w-full min-h-[400vh] bg-[#070709] text-white select-none overflow-x-hidden"
     >
-      {/* 1. FIXED BACKGROUND CANVAS - 96 HIGH DENSITY FRAMES (Ultra Smooth 60fps) */}
+      {/* 1. LAYER 1: SEPARATE FIXED FULLSCREEN BACKGROUND (Cerah & Penuh di Belakang) */}
       <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full object-cover"
+        <img
+          src={character.bgImage}
+          alt={`${character.name} Background`}
+          className="w-full h-full object-cover object-center filter brightness-105"
         />
       </div>
 
-      {/* 2. TOP FIXED NAVIGATION BAR (Bright Frosted Glass) */}
+      {/* 2. LAYER 2: RIGHT-ALIGNED STAGE VIEWPORT (Panggung Karakter Samping Kanan w-[52vw] dengan Frame Melingkar Modern) */}
+      <div className="fixed top-0 right-0 w-full lg:w-[52vw] h-full pointer-events-none z-10 flex items-center justify-center p-4 lg:p-8">
+        <div className="relative w-full h-full max-h-[92vh] rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/20">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full object-cover"
+          />
+          {/* Subtle soft edge gradient vignette */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* 3. TOP FIXED NAVIGATION BAR (Bright Frosted Glass) */}
       <header className="fixed top-0 left-0 w-full z-40 px-6 sm:px-12 py-5 flex justify-between items-center select-none backdrop-blur-xl bg-white/10 border-b border-white/20">
         <div className="flex items-center gap-4">
           <button
@@ -132,8 +147,8 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
         </div>
       </header>
 
-      {/* 3. RIGHT SIDE SCROLL PROGRESS BAR */}
-      <div className="fixed right-6 sm:right-10 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3 pointer-events-none">
+      {/* 4. SCROLL PROGRESS BAR */}
+      <div className="fixed left-6 sm:left-8 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center gap-3 pointer-events-none hidden xl:flex">
         <span className="text-[11px] font-mono font-bold text-white tracking-widest -rotate-90 origin-center mb-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
           FRAME SCROLL
         </span>
@@ -152,165 +167,169 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
         </span>
       </div>
 
-      {/* 4. SCROLLABLE STORY & LORE CONTENT SECTIONS (Bright Glassmorphism Cards) */}
-      <div className="relative z-20 w-full max-w-6xl mx-auto px-6 sm:px-12 pt-32">
-        {/* Section 1: Hero Overview (0 - 100vh) */}
-        <section className="min-h-screen flex flex-col justify-center max-w-2xl py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.4 }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-2xl bg-white/15 p-8 sm:p-12 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
-          >
-            <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
-              ARCHIVE SPECIFICATION
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-              {character.name}
-            </h1>
-            <p className="text-lg sm:text-xl text-white italic font-medium mb-6 drop-shadow">
-              "{character.quote}"
-            </p>
-            <p className="text-sm sm:text-base text-white/95 leading-relaxed font-normal drop-shadow">
-              {character.lore}
-            </p>
-            <div className="mt-8 flex items-center gap-3 text-xs font-mono font-bold text-white tracking-widest drop-shadow">
-              <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shadow-[0_0_8px_#fff]" />
-              <span>SCROLL DOWN TO REVEAL ABILITIES & STATS</span>
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Section 2: Deep Backstory (100vh - 200vh) */}
-        <section className="min-h-screen flex flex-col justify-center items-end py-16">
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: false, amount: 0.4 }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-2xl bg-white/15 p-8 sm:p-12 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)] max-w-xl text-right"
-          >
-            <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
-              ORIGIN & GENESIS
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-              {character.specs.origin}
-            </h2>
-            <p className="text-sm sm:text-base text-white/95 leading-relaxed font-normal mb-6 drop-shadow">
-              {character.details.backstory}
-            </p>
-            <div className="flex justify-end gap-3 flex-wrap">
-              <span className="px-3.5 py-1.5 text-xs font-mono font-bold bg-white/25 rounded-full border border-white/60 text-white shadow">
-                RESONANCE: {character.specs.resonance}
-              </span>
-              <span className="px-3.5 py-1.5 text-xs font-mono font-bold bg-white/25 rounded-full border border-white/60 text-white shadow">
-                CLASS: {character.specs.classType}
-              </span>
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Section 3: Kinetic Abilities (200vh - 300vh) */}
-        <section className="min-h-screen flex flex-col justify-center py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false, amount: 0.4 }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-2xl bg-white/15 p-8 sm:p-12 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)] max-w-3xl"
-          >
-            <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
-              COMBAT ABILITIES
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white mb-8 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-              TACTICAL ARSENAL
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              <div className="bg-white/20 p-5 rounded-2xl border border-white/40 shadow-md">
-                <div className="text-xs font-mono font-bold text-white/80 mb-1">01 / ABILITY</div>
-                <div className="text-lg font-black text-white mb-2 drop-shadow">
-                  {character.details.ability1.name}
-                </div>
-                <p className="text-xs text-white/95 leading-relaxed font-normal drop-shadow">
-                  {character.details.ability1.desc}
-                </p>
-              </div>
-
-              <div className="bg-white/20 p-5 rounded-2xl border border-white/40 shadow-md">
-                <div className="text-xs font-mono font-bold text-white/80 mb-1">02 / ABILITY</div>
-                <div className="text-lg font-black text-white mb-2 drop-shadow">
-                  {character.details.ability2.name}
-                </div>
-                <p className="text-xs text-white/95 leading-relaxed font-normal drop-shadow">
-                  {character.details.ability2.desc}
-                </p>
-              </div>
-
-              <div className="bg-white/20 p-5 rounded-2xl border border-white/40 shadow-md">
-                <div className="text-xs font-mono font-bold text-white/80 mb-1">03 / ABILITY</div>
-                <div className="text-lg font-black text-white mb-2 drop-shadow">
-                  {character.details.ability3.name}
-                </div>
-                <p className="text-xs text-white/95 leading-relaxed font-normal drop-shadow">
-                  {character.details.ability3.desc}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Section 4: Power Attribute Matrix (300vh - 400vh) */}
-        <section className="min-h-screen flex flex-col justify-center items-center py-16">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: false, amount: 0.4 }}
-            transition={{ duration: 0.6 }}
-            className="backdrop-blur-2xl bg-white/15 p-8 sm:p-12 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)] max-w-2xl w-full"
-          >
-            <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 text-center drop-shadow">
-              CORE METRICS
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight text-white mb-8 text-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-              ATTRIBUTE MATRIX
-            </h2>
-
-            <div className="space-y-4">
-              {Object.entries(character.details.stats).map(([stat, val]) => (
-                <div key={stat} className="flex flex-col gap-1.5">
-                  <div className="flex justify-between text-xs font-mono font-bold uppercase text-white drop-shadow">
-                    <span>{stat}</span>
-                    <span className="font-black text-white">{val}%</span>
-                  </div>
-                  <div className="w-full bg-black/30 h-2.5 rounded-full overflow-hidden border border-white/30">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${val}%` }}
-                      viewport={{ once: false }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
-                      className="h-full rounded-full"
-                      style={{
-                        backgroundColor: character.themeColor,
-                        boxShadow: `0 0 12px ${character.themeColor}`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-10 flex justify-center">
-              <button
-                onClick={onBack}
-                className="px-9 py-3.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
+      {/* 5. SCROLLABLE STORY & LORE CONTENT SECTIONS ON THE LEFT */}
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 sm:px-12 pt-28">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-6 xl:col-span-5 flex flex-col">
+            {/* Section 1: Hero Overview */}
+            <section className="min-h-screen flex flex-col justify-center py-16">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.4 }}
+                transition={{ duration: 0.6 }}
+                className="backdrop-blur-2xl bg-white/15 p-8 sm:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
               >
-                SELECT ANOTHER PIXIE
-              </button>
-            </div>
-          </motion.div>
-        </section>
+                <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
+                  ARCHIVE SPECIFICATION
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                  {character.name}
+                </h1>
+                <p className="text-base sm:text-lg text-white italic font-medium mb-5 drop-shadow">
+                  "{character.quote}"
+                </p>
+                <p className="text-sm text-white/95 leading-relaxed font-normal drop-shadow">
+                  {character.lore}
+                </p>
+                <div className="mt-6 flex items-center gap-3 text-xs font-mono font-bold text-white tracking-widest drop-shadow">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shadow-[0_0_8px_#fff]" />
+                  <span>SCROLL TO ADVANCE ANIMATION</span>
+                </div>
+              </motion.div>
+            </section>
+
+            {/* Section 2: Genesis & Backstory */}
+            <section className="min-h-screen flex flex-col justify-center py-16">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.4 }}
+                transition={{ duration: 0.6 }}
+                className="backdrop-blur-2xl bg-white/15 p-8 sm:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
+              >
+                <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
+                  ORIGIN & GENESIS
+                </div>
+                <h2 className="text-3xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                  {character.specs.origin}
+                </h2>
+                <p className="text-sm text-white/95 leading-relaxed font-normal mb-6 drop-shadow">
+                  {character.details.backstory}
+                </p>
+                <div className="flex gap-3 flex-wrap">
+                  <span className="px-3.5 py-1.5 text-xs font-mono font-bold bg-white/25 rounded-full border border-white/60 text-white shadow">
+                    RESONANCE: {character.specs.resonance}
+                  </span>
+                  <span className="px-3.5 py-1.5 text-xs font-mono font-bold bg-white/25 rounded-full border border-white/60 text-white shadow">
+                    CLASS: {character.specs.classType}
+                  </span>
+                </div>
+              </motion.div>
+            </section>
+
+            {/* Section 3: Combat Abilities */}
+            <section className="min-h-screen flex flex-col justify-center py-16">
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.4 }}
+                transition={{ duration: 0.6 }}
+                className="backdrop-blur-2xl bg-white/15 p-8 sm:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
+              >
+                <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
+                  COMBAT ABILITIES
+                </div>
+                <h2 className="text-3xl font-black uppercase tracking-tight text-white mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                  TACTICAL ARSENAL
+                </h2>
+
+                <div className="space-y-3.5">
+                  <div className="bg-white/20 p-4 rounded-2xl border border-white/40 shadow-md">
+                    <div className="text-xs font-mono font-bold text-white/80 mb-0.5">01 / ABILITY</div>
+                    <div className="text-base font-black text-white mb-1 drop-shadow">
+                      {character.details.ability1.name}
+                    </div>
+                    <p className="text-xs text-white/95 leading-relaxed font-normal drop-shadow">
+                      {character.details.ability1.desc}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/20 p-4 rounded-2xl border border-white/40 shadow-md">
+                    <div className="text-xs font-mono font-bold text-white/80 mb-0.5">02 / ABILITY</div>
+                    <div className="text-base font-black text-white mb-1 drop-shadow">
+                      {character.details.ability2.name}
+                    </div>
+                    <p className="text-xs text-white/95 leading-relaxed font-normal drop-shadow">
+                      {character.details.ability2.desc}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/20 p-4 rounded-2xl border border-white/40 shadow-md">
+                    <div className="text-xs font-mono font-bold text-white/80 mb-0.5">03 / ABILITY</div>
+                    <div className="text-base font-black text-white mb-1 drop-shadow">
+                      {character.details.ability3.name}
+                    </div>
+                    <p className="text-xs text-white/95 leading-relaxed font-normal drop-shadow">
+                      {character.details.ability3.desc}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </section>
+
+            {/* Section 4: Attribute Matrix */}
+            <section className="min-h-screen flex flex-col justify-center py-16">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: false, amount: 0.4 }}
+                transition={{ duration: 0.6 }}
+                className="backdrop-blur-2xl bg-white/15 p-8 sm:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)] w-full"
+              >
+                <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
+                  CORE METRICS
+                </div>
+                <h2 className="text-3xl font-black uppercase tracking-tight text-white mb-6 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                  ATTRIBUTE MATRIX
+                </h2>
+
+                <div className="space-y-3.5">
+                  {Object.entries(character.details.stats).map(([stat, val]) => (
+                    <div key={stat} className="flex flex-col gap-1">
+                      <div className="flex justify-between text-xs font-mono font-bold uppercase text-white drop-shadow">
+                        <span>{stat}</span>
+                        <span className="font-black text-white">{val}%</span>
+                      </div>
+                      <div className="w-full bg-black/30 h-2.5 rounded-full overflow-hidden border border-white/30">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${val}%` }}
+                          viewport={{ once: false }}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                          className="h-full rounded-full"
+                          style={{
+                            backgroundColor: character.themeColor,
+                            boxShadow: `0 0 12px ${character.themeColor}`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 flex justify-center">
+                  <button
+                    onClick={onBack}
+                    className="w-full py-3.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  >
+                    SELECT ANOTHER PIXIE
+                  </button>
+                </div>
+              </motion.div>
+            </section>
+          </div>
+        </div>
       </div>
     </motion.div>
   );

@@ -1,5 +1,6 @@
 export interface PixieCharacter {
   id: string;
+  slug: string;
   name: string;
   title: string;
   element: string;
@@ -9,6 +10,7 @@ export interface PixieCharacter {
   characterImage: string;
   videoUrl: string;
   frameFolder: string;
+  transparentFrameFolder: string;
   frameCount: number;
   quote: string;
   lore: string;
@@ -35,6 +37,7 @@ export interface PixieCharacter {
 export const PIXIE_CHARACTERS: PixieCharacter[] = [
   {
     id: 'pixie-01',
+    slug: 'aurora-lumina',
     name: 'AURORA LUMINA',
     title: 'THE RADIANT ESSENCE',
     element: 'SOLAR LIGHT',
@@ -44,6 +47,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     characterImage: '/assets/pixie/nobg/pixie1.png',
     videoUrl: '/assets/pixie/video/pixie1.mp4',
     frameFolder: '/assets/pixie/frames/pixie1',
+    transparentFrameFolder: '/assets/pixie/frames_transparent/pixie1',
     frameCount: 96,
     quote: 'Lighting up the twilight with eternal starlight.',
     lore: 'Manifested from ethereal solar flares, Lumina bends surrounding light to veil its form and pierce deep stellar shadows.',
@@ -62,6 +66,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
   },
   {
     id: 'pixie-02',
+    slug: 'cyber-nyx',
     name: 'CYBER NYX',
     title: 'THE VOID ENCRYPTOR',
     element: 'QUANTUM VOID',
@@ -71,6 +76,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     characterImage: '/assets/pixie/nobg/pixie2.png',
     videoUrl: '/assets/pixie/video/pixei2.mp4',
     frameFolder: '/assets/pixie/frames/pixie2',
+    transparentFrameFolder: '/assets/pixie/frames_transparent/pixie2',
     frameCount: 96,
     quote: 'Dissolving the boundaries of reality into pure digital pulse.',
     lore: 'Harnesses high-frequency quantum pulses to encode matter into binary streams, vanishing into encrypted cyberspace.',
@@ -89,6 +95,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
   },
   {
     id: 'pixie-03',
+    slug: 'vortex-sylph',
     name: 'VORTEX SYLPH',
     title: 'THE AERO KINETIC',
     element: 'SONIC TEMPEST',
@@ -98,6 +105,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     characterImage: '/assets/pixie/nobg/pixie3.png',
     videoUrl: '/assets/pixie/video/pixie3.mp4',
     frameFolder: '/assets/pixie/frames/pixie3',
+    transparentFrameFolder: '/assets/pixie/frames_transparent/pixie3',
     frameCount: 96,
     quote: 'Dancing through the slipstream of frictionless kinetic winds.',
     lore: 'Commands supersonic atmospheric currents, maneuvering with zero friction through tempest vortices.',
@@ -116,6 +124,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
   },
   {
     id: 'pixie-04',
+    slug: 'ignis-valkyrie',
     name: 'IGNIS VALKYRIE',
     title: 'THE CRIMSON FLAME',
     element: 'PLASMA INFERNO',
@@ -125,6 +134,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     characterImage: '/assets/pixie/nobg/pixie4.png',
     videoUrl: '/assets/pixie/video/pixie4.mp4',
     frameFolder: '/assets/pixie/frames/pixie4',
+    transparentFrameFolder: '/assets/pixie/frames_transparent/pixie4',
     frameCount: 96,
     quote: 'Awakening superheated celestial fire with fierce determination.',
     lore: 'Born from subterranean magma veins, emitting concentrated plasma waves that incinerate cosmic debris.',
@@ -143,6 +153,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
   },
   {
     id: 'pixie-05',
+    slug: 'nebula-siren',
     name: 'NEBULA SIREN',
     title: 'THE COSMIC HARMONIC',
     element: 'GRAVITY CELESTIAL',
@@ -152,6 +163,7 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     characterImage: '/assets/pixie/nobg/pixie5.png',
     videoUrl: '/assets/pixie/video/pixie5.mp4',
     frameFolder: '/assets/pixie/frames/pixie5',
+    transparentFrameFolder: '/assets/pixie/frames_transparent/pixie5',
     frameCount: 96,
     quote: 'Resonating across the galactic depths of space and time.',
     lore: 'Synchronizes with deep gravitational frequencies across the universe, creating harmonic ripples that bend cosmic time.',

@@ -11,13 +11,65 @@ import { SelectButton } from './components/SelectButton';
 import { CharacterDetailPage } from './components/CharacterDetailPage';
 
 export default function App() {
-  const [currentIndex, setCurrentIndex] = useState<number>(4);
-  const [direction, setDirection] = useState<number>(0);
-  const [selectedCharacter, setSelectedCharacter] = useState<PixieCharacter | null>(null);
-
   const characterCount = PIXIE_CHARACTERS.length;
-  const currentCharacter = PIXIE_CHARACTERS[currentIndex];
   const lastScrollTimeRef = useRef<number>(0);
+
+  // Helper: Read initial character & detail state from URL pathname
+  const getInitialState = () => {
+    const path = window.location.pathname.replace(/^\/|\/$/g, '');
+    if (path) {
+      const foundIdx = PIXIE_CHARACTERS.findIndex(
+        (c) => c.slug === path || c.id === path
+      );
+      if (foundIdx !== -1) {
+        return {
+          index: foundIdx,
+          selected: PIXIE_CHARACTERS[foundIdx],
+        };
+      }
+    }
+    // Default to Pixie 5 (index 4)
+    return {
+      index: 4,
+      selected: null,
+    };
+  };
+
+  const initial = getInitialState();
+  const [currentIndex, setCurrentIndex] = useState<number>(initial.index);
+  const [direction, setDirection] = useState<number>(0);
+  const [selectedCharacter, setSelectedCharacter] = useState<PixieCharacter | null>(initial.selected);
+
+  const currentCharacter = PIXIE_CHARACTERS[currentIndex];
+
+  // Sync browser URL with current navigation & selection
+  const updateUrl = (char: PixieCharacter | null) => {
+    if (char) {
+      window.history.pushState({ slug: char.slug }, '', `/${char.slug}`);
+    } else {
+      window.history.pushState({}, '', '/');
+    }
+  };
+
+  // Handle browser Back / Forward buttons (PopState event)
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.replace(/^\/|\/$/g, '');
+      if (path) {
+        const found = PIXIE_CHARACTERS.find((c) => c.slug === path || c.id === path);
+        if (found) {
+          const idx = PIXIE_CHARACTERS.indexOf(found);
+          setCurrentIndex(idx);
+          setSelectedCharacter(found);
+          return;
+        }
+      }
+      setSelectedCharacter(null);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleNext = useCallback(() => {
     setDirection(1);
@@ -31,7 +83,7 @@ export default function App() {
 
   // Wheel / Scroll event listener on Main Showcase view
   useEffect(() => {
-    if (selectedCharacter) return; // Disable showcase wheel when in detail page
+    if (selectedCharacter) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -103,6 +155,18 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleNext, handlePrev, selectedCharacter]);
 
+  const handleSelectCharacter = (char: PixieCharacter) => {
+    setSelectedCharacter(char);
+    updateUrl(char);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const handleBackToGallery = () => {
+    setSelectedCharacter(null);
+    updateUrl(null);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-[#070709] text-white">
       {/* Custom Cursor */}
@@ -110,14 +174,11 @@ export default function App() {
 
       <AnimatePresence mode="wait">
         {selectedCharacter ? (
-          /* PAGE 2: Scroll-Driven Frame Animation Detail Page */
+          /* PAGE 2: Direct URL Scroll-Driven Frame Animation Detail Page */
           <CharacterDetailPage
-            key="detail-page"
+            key={`detail-${selectedCharacter.id}`}
             character={selectedCharacter}
-            onBack={() => {
-              setSelectedCharacter(null);
-              window.scrollTo({ top: 0, behavior: 'instant' });
-            }}
+            onBack={handleBackToGallery}
           />
         ) : (
           /* PAGE 1: Main Fullscreen Showcase */
@@ -144,10 +205,10 @@ export default function App() {
               accentColor={currentCharacter.themeColor}
             />
 
-            {/* Glassmorphic Select Button (Klik untuk masuk ke Page Detail Scroll) */}
+            {/* Glassmorphic Select Button (Klik untuk masuk ke Direct URL Page) */}
             <SelectButton
               character={currentCharacter}
-              onSelect={(char) => setSelectedCharacter(char)}
+              onSelect={handleSelectCharacter}
             />
 
             {/* Typography & Character Info Overlay */}
