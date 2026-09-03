@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface IntroAnimationProps {
@@ -6,126 +6,201 @@ interface IntroAnimationProps {
 }
 
 export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) => {
-  const [phase, setPhase] = useState<'lamp-in' | 'lamp-jump' | 'wordmark' | 'fade-out'>('lamp-in');
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [phase, setPhase] = useState<'idle' | 'appear' | 'floating' | 'fade-out'>('idle');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    // Pixar Iconic Intro Sequence
-    const t1 = setTimeout(() => setPhase('lamp-jump'), 800);
-    const t2 = setTimeout(() => setPhase('wordmark'), 1800);
-    const t3 = setTimeout(() => setPhase('fade-out'), 3200);
-    const t4 = setTimeout(() => onComplete(), 3800);
+  // Triggered when user presses "START GAME"
+  const handleStartGame = () => {
+    setIsPlaying(true);
+    setPhase('appear');
 
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
-    };
-  }, [onComplete]);
+    // Initialize and play opening sound
+    const audio = new Audio('/assets/pixar/animasi_opening/opening_sound.mp3');
+    audio.volume = 1.0;
+    audioRef.current = audio;
+    audio.play().catch(() => {});
+
+    // Animation timeline sequence
+    setTimeout(() => setPhase('floating'), 2300);
+    setTimeout(() => setPhase('fade-out'), 3800);
+    setTimeout(() => {
+      onComplete();
+    }, 4300);
+  };
+
+  const handleSkip = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setPhase('fade-out');
+    setTimeout(() => onComplete(), 200);
+  };
 
   return (
     <AnimatePresence>
       {phase !== 'fade-out' && (
         <motion.div
-          key="pixar-intro"
+          key="pixar-logo-intro"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 0.7, ease: [0.25, 1, 0.5, 1] }}
-          className="fixed inset-0 z-50 bg-[#08080c] flex flex-col items-center justify-center select-none overflow-hidden"
+          exit={{ opacity: 0, scale: 1.06 }}
+          transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center select-none overflow-hidden backdrop-blur-3xl bg-white/75"
         >
-          {/* 3D Cinematic Spotlight Background */}
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-cyan-400/10 filter blur-[140px]" />
-            <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[300px] rounded-full bg-blue-600/15 filter blur-[100px]" />
-          </div>
-
-          {/* Pixar 3D Lamp Animation */}
-          <div className="relative mb-6 flex flex-col items-center">
+          {/* MULTI-COLOR GRADIENT (Biru, Oranye, Kuning, Merah ke Pink, Hijau) */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* 1. Biru */}
             <motion.div
-              initial={{ y: -120, opacity: 0, rotate: -25 }}
-              animate={
-                phase === 'lamp-in'
-                  ? { y: 0, opacity: 1, rotate: 0 }
-                  : phase === 'lamp-jump'
-                  ? { y: [-20, 10, -10, 0], scaleY: [1, 0.7, 1.1, 1], scaleX: [1, 1.25, 0.95, 1] }
-                  : { y: 0, opacity: 1, rotate: [0, 8, -4, 0] }
-              }
-              transition={{
-                duration: 0.8,
-                ease: 'easeOut',
+              animate={{
+                x: [0, 40, 0],
+                y: [0, -30, 0],
+                scale: [1, 1.15, 1],
               }}
-              className="relative flex flex-col items-center"
-            >
-              {/* 3D Lamp Light Beam */}
-              <motion.div
-                initial={{ opacity: 0, scaleY: 0 }}
-                animate={{ opacity: [0, 0.8, 0.4, 0.7], scaleY: [0, 1, 0.9, 1] }}
-                transition={{ duration: 1.2, delay: 0.4 }}
-                className="absolute top-12 left-1/2 -translate-x-1/2 w-48 h-64 bg-gradient-to-b from-cyan-300/40 via-blue-400/15 to-transparent filter blur-md origin-top pointer-events-none"
-                style={{
-                  clipPath: 'polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%)',
-                }}
-              />
+              transition={{ duration: 6, ease: 'easeInOut', repeat: Infinity }}
+              className="absolute -top-20 -left-20 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full bg-blue-500/35 filter blur-[130px]"
+            />
 
-              {/* 3D Lamp SVG Icon */}
-              <svg
-                className="w-20 h-20 sm:w-24 sm:h-24 text-white drop-shadow-[0_10px_25px_rgba(0,240,255,0.6)]"
-                viewBox="0 0 100 100"
-                fill="none"
-              >
-                {/* Lamp Shade Head */}
-                <path
-                  d="M32 20 L68 20 L80 50 L20 50 Z"
-                  fill="url(#lampGrad)"
-                  stroke="#FFFFFF"
-                  strokeWidth="2.5"
-                />
-                {/* Bulb Light */}
-                <circle cx="50" cy="50" r="12" fill="#00F0FF" className="animate-pulse" />
-                {/* Lamp Neck Joints */}
-                <path d="M50 20 L50 8 M44 8 L56 8" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-                <path d="M50 50 L35 72 L65 85 L50 95" stroke="#E2E8F0" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                {/* Base */}
-                <ellipse cx="50" cy="95" rx="24" ry="4" fill="#64748B" stroke="#FFFFFF" strokeWidth="2" />
+            {/* 2. Oranye & Kuning */}
+            <motion.div
+              animate={{
+                x: [0, -40, 0],
+                y: [0, 30, 0],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{ duration: 7, ease: 'easeInOut', repeat: Infinity }}
+              className="absolute -top-10 -right-10 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full bg-gradient-to-br from-amber-400/40 via-orange-500/35 to-yellow-300/40 filter blur-[130px]"
+            />
 
-                <defs>
-                  <linearGradient id="lampGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFFFFF" />
-                    <stop offset="50%" stopColor="#94A3B8" />
-                    <stop offset="100%" stopColor="#334155" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </motion.div>
+            {/* 3. Merah ke Pink */}
+            <motion.div
+              animate={{
+                x: [0, -30, 0],
+                y: [0, -40, 0],
+                scale: [1, 1.18, 1],
+              }}
+              transition={{ duration: 6.5, ease: 'easeInOut', repeat: Infinity }}
+              className="absolute -bottom-20 -right-20 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full bg-gradient-to-tr from-rose-500/40 via-pink-500/40 to-fuchsia-400/35 filter blur-[140px]"
+            />
+
+            {/* 4. Hijau */}
+            <motion.div
+              animate={{
+                x: [0, 35, 0],
+                y: [0, 25, 0],
+                scale: [1, 1.15, 1],
+              }}
+              transition={{ duration: 7.5, ease: 'easeInOut', repeat: Infinity }}
+              className="absolute -bottom-20 -left-20 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full bg-emerald-400/35 filter blur-[130px]"
+            />
+
+            {/* Center Mesh Blend */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/15 via-pink-400/20 to-yellow-300/15 backdrop-blur-2xl" />
           </div>
 
-          {/* Pixar 3D Typography Wordmark */}
-          <motion.div
-            initial={{ opacity: 0, y: 30, letterSpacing: '0.6em' }}
-            animate={{ opacity: 1, y: 0, letterSpacing: '0.25em' }}
-            transition={{ duration: 0.9, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-center"
-          >
-            <h1 className="text-5xl sm:text-7xl font-black uppercase text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-400 drop-shadow-[0_12px_30px_rgba(0,0,0,0.9)] tracking-[0.25em] pl-3">
-              PIXAR
-            </h1>
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.4, duration: 0.6 }}
-              className="mt-3 text-xs sm:text-sm font-mono tracking-[0.4em] uppercase text-cyan-300/80 font-bold"
+          {/* ANIMATED PIXAR LOGO CONTAINER */}
+          <div className="relative z-10 flex flex-col items-center justify-center p-4 sm:p-8 w-full">
+            {/* Logo Container */}
+            <motion.div
+              initial={false}
+              animate={
+                phase === 'idle'
+                  ? { opacity: 1, scale: 0.95, y: 0 }
+                  : phase === 'appear'
+                  ? {
+                      opacity: [0.3, 1],
+                      scale: [0.65, 1],
+                      y: [30, 0],
+                      filter: ['blur(12px)', 'blur(0px)'],
+                      transition: {
+                        duration: 2.3,
+                        ease: [0.16, 1, 0.3, 1],
+                      },
+                    }
+                  : {
+                      y: [-4, 4, -4],
+                      scale: [1, 1.02, 1],
+                      transition: {
+                        duration: 1.5,
+                        ease: 'easeInOut',
+                        repeat: Infinity,
+                      },
+                    }
+              }
+              className="relative flex items-center justify-center w-[90vw] max-w-[650px] sm:max-w-[750px] md:max-w-[850px]"
             >
-              3D ANIMATION ARCHIVE
-            </motion.span>
-          </motion.div>
+              {/* Soft Multi-color Shadow */}
+              <div className="absolute -inset-10 rounded-full bg-gradient-to-r from-pink-400/30 via-purple-400/20 to-cyan-400/30 filter blur-3xl pointer-events-none" />
 
-          {/* Skip Button */}
-          <button
-            onClick={onComplete}
-            className="absolute bottom-8 right-8 text-[11px] font-mono tracking-widest text-white/40 hover:text-white transition-colors cursor-pointer uppercase"
-          >
-            [ SKIP INTRO ➔ ]
-          </button>
+              {/* Pixar Logo */}
+              <img
+                src="/assets/pixar/logo/logo.png"
+                alt="Pixar Logo"
+                className="relative z-10 w-full h-auto object-contain filter drop-shadow-[0_20px_45px_rgba(0,0,0,0.18)] pointer-events-none"
+              />
+            </motion.div>
+
+            {/* START GAME BUTTON (Desain Kaca Kristal Frosted Glass persis seperti tombol SELECT CHARACTER) */}
+            <AnimatePresence>
+              {!isPlaying && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.9 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="mt-10 sm:mt-12 flex flex-col items-center"
+                >
+                  <motion.button
+                    onClick={handleStartGame}
+                    whileHover={{ scale: 1.06, y: -2 }}
+                    whileTap={{ scale: 0.95, y: 0 }}
+                    className="relative group overflow-hidden px-8 sm:px-11 py-3 sm:py-3.5 rounded-full border border-white/80 hover:border-white backdrop-blur-2xl bg-white/35 hover:bg-white/50 transition-all duration-300 cursor-pointer flex items-center justify-center gap-3 shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+                    style={{
+                      boxShadow: '0 8px 32px 0 rgba(255, 255, 255, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 25px rgba(217, 70, 239, 0.35)',
+                    }}
+                  >
+                    {/* Shimmer Light Reflection */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/50 to-transparent pointer-events-none" />
+
+                    {/* Dynamic Ambient Glow Accent */}
+                    <div
+                      className="absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-300 pointer-events-none rounded-full"
+                      style={{
+                        background: 'radial-gradient(circle at center, #D946EF 0%, transparent 75%)',
+                      }}
+                    />
+
+                    {/* Content */}
+                    <div className="relative z-10 flex items-center gap-2.5 text-slate-900 group-hover:text-black font-mono font-extrabold text-xs sm:text-sm tracking-[0.25em] uppercase drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
+                      {/* Glowing Status Dot */}
+                      <span className="w-2.5 h-2.5 rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899] animate-pulse" />
+                      <span>START GAME</span>
+                      <svg
+                        className="w-4 h-4 text-slate-900 group-hover:translate-x-1 transition-transform"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                    </div>
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Clean Glassmorphic Skip Button */}
+          {isPlaying && (
+            <button
+              onClick={handleSkip}
+              className="absolute bottom-8 right-8 z-20 px-5 py-2.5 rounded-full bg-white/40 hover:bg-white/60 backdrop-blur-xl border border-white/60 text-xs font-mono tracking-widest text-slate-800 hover:text-black transition-all cursor-pointer uppercase shadow-lg hover:scale-105 active:scale-95"
+            >
+              [ SKIP INTRO ➔ ]
+            </button>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
