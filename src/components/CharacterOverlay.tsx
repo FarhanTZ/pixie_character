@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PixieCharacter } from '../data/characters';
+import { PixarCharacter } from '../data/characters';
 
 interface CharacterOverlayProps {
-  character: PixieCharacter;
+  character: PixarCharacter;
   currentIndex: number;
   total: number;
 }

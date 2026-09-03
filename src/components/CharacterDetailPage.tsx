@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { PixieCharacter } from '../data/characters';
+import { PixarCharacter } from '../data/characters';
 
 interface CharacterDetailPageProps {
-  character: PixieCharacter;
+  character: PixarCharacter;
   onBack: () => void;
 }
 
@@ -103,7 +103,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
       ref={containerRef}
       className="relative w-full min-h-[400vh] bg-[#070709] text-white select-none overflow-x-hidden"
     >
-      {/* 1. LAYER 1: SEPARATE FIXED FULLSCREEN BACKGROUND (Cerah & Penuh di Belakang) */}
+      {/* 1. LAYER 1: SEPARATE FIXED FULLSCREEN BACKGROUND */}
       <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
         <img
           src={character.bgImage}
@@ -112,14 +112,13 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
         />
       </div>
 
-      {/* 2. LAYER 2: RIGHT-ALIGNED STAGE VIEWPORT (Panggung Karakter Samping Kanan w-[52vw] dengan Frame Melingkar Modern) */}
+      {/* 2. LAYER 2: RIGHT-ALIGNED STAGE VIEWPORT (Panggung Karakter Samping Kanan) */}
       <div className="fixed top-0 right-0 w-full lg:w-[52vw] h-full pointer-events-none z-10 flex items-center justify-center p-4 lg:p-8">
         <div className="relative w-full h-full max-h-[92vh] rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/20">
           <canvas
             ref={canvasRef}
             className="w-full h-full object-cover"
           />
-          {/* Subtle soft edge gradient vignette */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
         </div>
       </div>
@@ -134,7 +133,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            <span>BACK TO GALLERY</span>
+            <span>BACK TO ARCHIVE</span>
           </button>
         </div>
 
@@ -181,7 +180,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
                 className="backdrop-blur-2xl bg-white/15 p-8 sm:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.25)]"
               >
                 <div className="text-xs font-mono font-bold tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
-                  ARCHIVE SPECIFICATION
+                  PIXAR SPECIFICATION
                 </div>
                 <h1 className="text-4xl sm:text-5xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
                   {character.name}
@@ -323,7 +322,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
                     onClick={onBack}
                     className="w-full py-3.5 rounded-full bg-white text-black font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                   >
-                    SELECT ANOTHER PIXIE
+                    SELECT ANOTHER CHARACTER
                   </button>
                 </div>
               </motion.div>

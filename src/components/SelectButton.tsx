@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PixieCharacter } from '../data/characters';
+import { PixarCharacter } from '../data/characters';
 
 interface SelectButtonProps {
-  character: PixieCharacter;
-  onSelect?: (character: PixieCharacter) => void;
+  character: PixarCharacter;
+  onSelect?: (character: PixarCharacter) => void;
 }
 
 export const SelectButton: React.FC<SelectButtonProps> = ({ character, onSelect }) => {
@@ -64,7 +64,7 @@ export const SelectButton: React.FC<SelectButtonProps> = ({ character, onSelect 
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <span className="text-white font-extrabold">PIXIE SELECTED</span>
+                <span className="text-white font-extrabold">CHARACTER SELECTED</span>
               </motion.div>
             ) : (
               <motion.div
@@ -83,7 +83,7 @@ export const SelectButton: React.FC<SelectButtonProps> = ({ character, onSelect 
                   }}
                 />
                 <span className="text-white font-extrabold">
-                  SELECT PIXIE
+                  SELECT CHARACTER
                 </span>
                 <svg
                   className="w-3.5 h-3.5 text-white group-hover:translate-x-0.5 transition-transform drop-shadow"

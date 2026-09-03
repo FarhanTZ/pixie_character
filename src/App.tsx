@@ -1,30 +1,30 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { PIXIE_CHARACTERS, PixieCharacter } from './data/characters';
+import { PIXAR_CHARACTERS, PixarCharacter } from './data/characters';
 import { Header } from './components/Header';
-import { CustomCursor } from './components/CustomCursor';
-import { PixieStage } from './components/PixieStage';
+import { PixarStage } from './components/PixarStage';
 import { CharacterOverlay } from './components/CharacterOverlay';
 import { NavigationButtons } from './components/NavigationButtons';
 import { BackgroundFX } from './components/BackgroundFX';
 import { SelectButton } from './components/SelectButton';
 import { CharacterDetailPage } from './components/CharacterDetailPage';
+import { IntroAnimation } from './components/IntroAnimation';
 
 export default function App() {
-  const characterCount = PIXIE_CHARACTERS.length;
-  const lastScrollTimeRef = useRef<number>(0);
+  const [showIntro, setShowIntro] = useState<boolean>(true);
+  const characterCount = PIXAR_CHARACTERS.length;
 
   // Helper: Read initial character & detail state from URL pathname
   const getInitialState = () => {
     const path = window.location.pathname.replace(/^\/|\/$/g, '');
     if (path) {
-      const foundIdx = PIXIE_CHARACTERS.findIndex(
+      const foundIdx = PIXAR_CHARACTERS.findIndex(
         (c) => c.slug === path || c.id === path
       );
       if (foundIdx !== -1) {
         return {
           index: foundIdx,
-          selected: PIXIE_CHARACTERS[foundIdx],
+          selected: PIXAR_CHARACTERS[foundIdx],
         };
       }
     }
@@ -37,12 +37,12 @@ export default function App() {
   const initial = getInitialState();
   const [currentIndex, setCurrentIndex] = useState<number>(initial.index);
   const [direction, setDirection] = useState<number>(0);
-  const [selectedCharacter, setSelectedCharacter] = useState<PixieCharacter | null>(initial.selected);
+  const [selectedCharacter, setSelectedCharacter] = useState<PixarCharacter | null>(initial.selected);
 
-  const currentCharacter = PIXIE_CHARACTERS[currentIndex];
+  const currentCharacter = PIXAR_CHARACTERS[currentIndex];
 
   // Sync browser URL with current navigation & selection
-  const updateUrl = (char: PixieCharacter | null) => {
+  const updateUrl = (char: PixarCharacter | null) => {
     if (char) {
       window.history.pushState({ slug: char.slug }, '', `/${char.slug}`);
     } else {
@@ -55,9 +55,9 @@ export default function App() {
     const handlePopState = () => {
       const path = window.location.pathname.replace(/^\/|\/$/g, '');
       if (path) {
-        const found = PIXIE_CHARACTERS.find((c) => c.slug === path || c.id === path);
+        const found = PIXAR_CHARACTERS.find((c) => c.slug === path || c.id === path);
         if (found) {
-          const idx = PIXIE_CHARACTERS.indexOf(found);
+          const idx = PIXAR_CHARACTERS.indexOf(found);
           setCurrentIndex(idx);
           setSelectedCharacter(found);
           return;
@@ -80,33 +80,9 @@ export default function App() {
     setCurrentIndex((prev) => (prev - 1 + characterCount) % characterCount);
   }, [characterCount]);
 
-  // Wheel / Scroll event listener on Main Showcase view
-  useEffect(() => {
-    if (selectedCharacter) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const now = performance.now();
-      if (now - lastScrollTimeRef.current < 550) return;
-
-      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-
-      if (delta > 15) {
-        lastScrollTimeRef.current = now;
-        handleNext();
-      } else if (delta < -15) {
-        lastScrollTimeRef.current = now;
-        handlePrev();
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: false });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [handleNext, handlePrev, selectedCharacter]);
-
   // Touch Swipe navigation on Main Showcase view
   useEffect(() => {
-    if (selectedCharacter) return;
+    if (selectedCharacter || showIntro) return;
 
     let touchStartX = 0;
     let touchStartY = 0;
@@ -137,24 +113,24 @@ export default function App() {
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [handleNext, handlePrev, selectedCharacter]);
+  }, [handleNext, handlePrev, selectedCharacter, showIntro]);
 
-  // Keyboard navigation on Main Showcase view
+  // Keyboard navigation on Main Showcase view (ArrowLeft / ArrowRight)
   useEffect(() => {
-    if (selectedCharacter) return;
+    if (selectedCharacter || showIntro) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      if (e.key === 'ArrowRight') {
         handleNext();
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      } else if (e.key === 'ArrowLeft') {
         handlePrev();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNext, handlePrev, selectedCharacter]);
+  }, [handleNext, handlePrev, selectedCharacter, showIntro]);
 
-  const handleSelectCharacter = (char: PixieCharacter) => {
+  const handleSelectCharacter = (char: PixarCharacter) => {
     setSelectedCharacter(char);
     updateUrl(char);
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -168,8 +144,8 @@ export default function App() {
 
   return (
     <div className="relative w-full min-h-screen bg-[#070709] text-white">
-      {/* Custom Cursor */}
-      <CustomCursor />
+      {/* Pixar Iconic 3D Lamp Opening Intro Animation */}
+      {showIntro && <IntroAnimation onComplete={() => setShowIntro(false)} />}
 
       <AnimatePresence mode="wait">
         {selectedCharacter ? (
@@ -191,8 +167,8 @@ export default function App() {
             {/* Top Header Logo */}
             <Header />
 
-            {/* Fullscreen Pixie Stage */}
-            <PixieStage
+            {/* Fullscreen Pixar Stage */}
+            <PixarStage
               character={currentCharacter}
               direction={direction}
             />
@@ -210,7 +186,7 @@ export default function App() {
               onSelect={handleSelectCharacter}
             />
 
-            {/* Typography, Avatar Portrait & Character Info Overlay */}
+            {/* Typography, Character Info Overlay & Bottom-Right Image */}
             <CharacterOverlay
               character={currentCharacter}
               currentIndex={currentIndex}

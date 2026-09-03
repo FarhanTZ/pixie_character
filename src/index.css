@@ -7,7 +7,7 @@
 }
 
 /* Smooth standard high quality image rendering */
-.pixie-img-smooth {
+.pixar-img-smooth {
   image-rendering: auto;
   transform: translateZ(0);
 }

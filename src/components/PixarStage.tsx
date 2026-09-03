@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'motion/react';
-import { PixieCharacter } from '../data/characters';
+import { PixarCharacter } from '../data/characters';
 
-interface PixieStageProps {
-  character: PixieCharacter;
+interface PixarStageProps {
+  character: PixarCharacter;
   direction: number;
 }
 
@@ -66,7 +66,7 @@ const charVariants: Variants = {
   }),
 };
 
-export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) => {
+export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isNearCursor, setIsNearCursor] = useState<boolean>(false);
 
@@ -82,7 +82,7 @@ export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) 
       const distY = mouseY - centerY;
       const distance = Math.hypot(distX, distY);
 
-      // Zona interaktif di sekitar karakter (radius ~380px)
+      // Proximity threshold ~42% of screen dimension
       const proximityRadius = Math.min(window.innerWidth, window.innerHeight) * 0.42;
 
       if (distance < proximityRadius) {
@@ -124,7 +124,7 @@ export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) 
           <img
             src={character.bgImage}
             alt={`${character.name} Background`}
-            className="w-full h-full object-cover object-center pixie-img-smooth"
+            className="w-full h-full object-cover object-center pixar-img-smooth"
           />
         </motion.div>
       </AnimatePresence>
@@ -144,7 +144,7 @@ export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) 
             <img
               src={character.characterImage}
               alt={character.name}
-              className={`w-auto h-[90vh] sm:h-[94vh] max-w-[92vw] object-contain pixie-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)] transition-opacity duration-500 ${
+              className={`w-auto h-[90vh] sm:h-[94vh] max-w-[92vw] object-contain pixar-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)] transition-opacity duration-500 ${
                 isNearCursor ? 'opacity-0' : 'opacity-100'
               }`}
             />
