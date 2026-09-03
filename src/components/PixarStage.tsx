@@ -68,20 +68,39 @@ const charVariants: Variants = {
 
 export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isNearCursor, setIsNearCursor] = useState<boolean>(false);
   const [isMobilePlaying, setIsMobilePlaying] = useState<boolean>(false);
 
-  // Reset states when character switches
+  // Play character distinctive vocal sound effect whenever character switches
   useEffect(() => {
     setIsMobilePlaying(false);
     setIsNearCursor(false);
+
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
+
+    // Initialize and play character voice WAV audio
+    if (character.audioUrl) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const sound = new Audio(character.audioUrl);
+      sound.volume = 0.85;
+      audioRef.current = sound;
+      sound.play().catch(() => {});
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
   }, [character]);
 
-  // DESKTOP ONLY: Proximity Mouse Move Playback (HANYA DIDEKATI, TIDAK ADA KLIK)
+  // DESKTOP ONLY: Proximity Mouse Move Playback
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const centerX = window.innerWidth / 2;
@@ -124,7 +143,7 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
     }
   }, [isNearCursor, isMobilePlaying]);
 
-  // KHUSUS TOUCHSCREEN / MOBILE ONLY (Desktop klik diabaikan)
+  // KHUSUS TOUCHSCREEN / MOBILE ONLY
   const handleTouchToggle = () => {
     const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (isTouch) {

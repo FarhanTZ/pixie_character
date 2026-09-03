@@ -9,6 +9,7 @@ export interface PixarCharacter {
   bgImage: string;
   characterImage: string;
   videoUrl: string;
+  audioUrl: string;
   frameFolder: string;
   transparentFrameFolder: string;
   frameCount: number;
@@ -46,6 +47,7 @@ export const PIXAR_CHARACTERS: PixarCharacter[] = [
     bgImage: '/assets/pixar/bg/character1.png',
     characterImage: '/assets/pixar/nobg/character1.png',
     videoUrl: '/assets/pixar/video/character1.mp4',
+    audioUrl: '/assets/pixar/audio/pixar1.WAV',
     frameFolder: '/assets/pixar/frames/character1',
     transparentFrameFolder: '/assets/pixar/frames_transparent/character1',
     frameCount: 96,
@@ -75,6 +77,7 @@ export const PIXAR_CHARACTERS: PixarCharacter[] = [
     bgImage: '/assets/pixar/bg/character2.png',
     characterImage: '/assets/pixar/nobg/character2.png',
     videoUrl: '/assets/pixar/video/character2.mp4',
+    audioUrl: '/assets/pixar/audio/pixar2.WAV',
     frameFolder: '/assets/pixar/frames/character2',
     transparentFrameFolder: '/assets/pixar/frames_transparent/character2',
     frameCount: 96,
@@ -104,6 +107,7 @@ export const PIXAR_CHARACTERS: PixarCharacter[] = [
     bgImage: '/assets/pixar/bg/character3.png',
     characterImage: '/assets/pixar/nobg/character3.png',
     videoUrl: '/assets/pixar/video/character3.mp4',
+    audioUrl: '/assets/pixar/audio/pixar3.WAV',
     frameFolder: '/assets/pixar/frames/character3',
     transparentFrameFolder: '/assets/pixar/frames_transparent/character3',
     frameCount: 96,
@@ -133,6 +137,7 @@ export const PIXAR_CHARACTERS: PixarCharacter[] = [
     bgImage: '/assets/pixar/bg/character4.png',
     characterImage: '/assets/pixar/nobg/character4.png',
     videoUrl: '/assets/pixar/video/character4.mp4',
+    audioUrl: '/assets/pixar/audio/pixar4.WAV',
     frameFolder: '/assets/pixar/frames/character4',
     transparentFrameFolder: '/assets/pixar/frames_transparent/character4',
     frameCount: 96,
@@ -162,6 +167,7 @@ export const PIXAR_CHARACTERS: PixarCharacter[] = [
     bgImage: '/assets/pixar/bg/character5.png',
     characterImage: '/assets/pixar/nobg/character5.png',
     videoUrl: '/assets/pixar/video/character5.mp4',
+    audioUrl: '/assets/pixar/audio/pixar5.WAV',
     frameFolder: '/assets/pixar/frames/character5',
     transparentFrameFolder: '/assets/pixar/frames_transparent/character5',
     frameCount: 96,
