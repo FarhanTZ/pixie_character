@@ -6,6 +6,12 @@
   }
 }
 
+/* Smooth standard high quality image rendering */
+.pixie-img-smooth {
+  image-rendering: auto;
+  transform: translateZ(0);
+}
+
 .bp-card {
   will-change: transform;
 }

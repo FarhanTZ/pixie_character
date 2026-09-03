@@ -8,7 +8,8 @@ import { NavigationButtons } from './components/NavigationButtons';
 import { BackgroundFX } from './components/BackgroundFX';
 
 export default function App() {
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  // Default awal diset ke Pixie ke-5 (index 4)
+  const [currentIndex, setCurrentIndex] = useState<number>(4);
   const [direction, setDirection] = useState<number>(0);
 
   const characterCount = PIXIE_CHARACTERS.length;
@@ -25,17 +26,19 @@ export default function App() {
     setCurrentIndex((prev) => (prev - 1 + characterCount) % characterCount);
   }, [characterCount]);
 
-  // Wheel / Scroll event listener with throttling
+  // Wheel / Scroll event listener with precise delta check
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       const now = performance.now();
-      if (now - lastScrollTimeRef.current < 650) return; // Throttle to allow transition to play
+      if (now - lastScrollTimeRef.current < 550) return;
 
-      if (e.deltaY > 20 || e.deltaX > 20) {
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+
+      if (delta > 15) {
         lastScrollTimeRef.current = now;
         handleNext();
-      } else if (e.deltaY < -20 || e.deltaX < -20) {
+      } else if (delta < -15) {
         lastScrollTimeRef.current = now;
         handlePrev();
       }
@@ -48,17 +51,21 @@ export default function App() {
   // Touch Swipe navigation support for mobile / touchpads
   useEffect(() => {
     let touchStartX = 0;
-    let touchEndX = 0;
+    let touchStartY = 0;
 
     const handleTouchStart = (e: TouchEvent) => {
       touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      touchEndX = e.changedTouches[0].screenX;
-      const diff = touchEndX - touchStartX;
-      if (Math.abs(diff) > 40) {
-        if (diff < 0) {
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX < 0) {
           handleNext();
         } else {
           handlePrev();
