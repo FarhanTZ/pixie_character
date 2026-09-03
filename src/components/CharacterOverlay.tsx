@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PixarCharacter } from '../data/characters';
+import { characterAudioManager } from '../utils/audioManager';
 
 interface CharacterOverlayProps {
   character: PixarCharacter;
@@ -13,9 +14,26 @@ export const CharacterOverlay: React.FC<CharacterOverlayProps> = ({
   currentIndex,
   total,
 }) => {
+  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+
+  // Subscribe to central CharacterAudioManager state
+  useEffect(() => {
+    const unsubscribe = characterAudioManager.subscribe((playing) => {
+      setIsPlayingAudio(playing);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Toggle character voice audio via central manager (guaranteed single audio instance)
+  const handleToggleVoice = () => {
+    if (character.audioUrl) {
+      characterAudioManager.toggle(character.audioUrl);
+    }
+  };
+
   return (
     <>
-      {/* 1. TOP-LEFT INFO (Responsive on Mobile, iPad, Desktop) */}
+      {/* 1. TOP-LEFT INFO */}
       <div className="fixed top-18 sm:top-24 lg:top-28 left-4 sm:left-8 lg:left-12 z-20 pointer-events-none select-none max-w-[88vw] sm:max-w-lg lg:max-w-xl">
         <AnimatePresence mode="wait">
           <motion.div
@@ -41,7 +59,7 @@ export const CharacterOverlay: React.FC<CharacterOverlayProps> = ({
               "{character.quote}"
             </p>
 
-            {/* Pagination / Step Indicator */}
+            {/* Pagination / Step Indicator (1 2 3 4 5) */}
             <div className="flex items-center gap-2.5 sm:gap-3.5 mt-3 sm:mt-5">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 {Array.from({ length: total }).map((_, idx) => (
@@ -59,11 +77,64 @@ export const CharacterOverlay: React.FC<CharacterOverlayProps> = ({
                 0{currentIndex + 1} / 0{total}
               </span>
             </div>
+
+            {/* TOMBOL ICON SOUND (Tekan 1x Play, Tekan Ke-2x Langsung Stop/Disable) */}
+            <div className="mt-3.5 sm:mt-4 pointer-events-auto">
+              <motion.button
+                onClick={handleToggleVoice}
+                whileHover={{ scale: 1.15, y: -1 }}
+                whileTap={{ scale: 0.9 }}
+                className={`group flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border transition-all cursor-pointer shadow-[0_4px_16px_rgba(0,0,0,0.3)] ${
+                  isPlayingAudio
+                    ? 'border-pink-400 bg-pink-500/30 text-pink-300 shadow-[0_0_15px_rgba(244,114,182,0.6)]'
+                    : 'border-white/60 hover:border-white backdrop-blur-xl bg-white/20 hover:bg-white/40 text-white'
+                }`}
+                style={{
+                  boxShadow: isPlayingAudio
+                    ? '0 0 18px rgba(244, 114, 182, 0.75)'
+                    : `0 4px 20px 0 rgba(255, 255, 255, 0.2), 0 0 14px ${character.themeColor}50`,
+                }}
+                title={isPlayingAudio ? 'Click to Stop Audio' : 'Click to Play Audio'}
+                aria-label={isPlayingAudio ? 'Stop Audio' : 'Play Audio'}
+              >
+                {isPlayingAudio ? (
+                  /* Animated Volume / Mute Toggle Icon */
+                  <svg
+                    className="w-4 h-4 sm:w-4.5 sm:h-4.5 animate-pulse text-pink-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                  </svg>
+                ) : (
+                  /* Speaker Waves Icon */
+                  <svg
+                    className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-white group-hover:scale-110 transition-transform"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                  </svg>
+                )}
+              </motion.button>
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* 2. BOTTOM-RIGHT (Responsive on Mobile, iPad, Desktop) */}
+      {/* 2. BOTTOM-RIGHT */}
       <div className="fixed bottom-24 sm:bottom-10 lg:bottom-12 right-4 sm:right-8 lg:right-12 z-20 pointer-events-none select-none max-w-[70vw] sm:max-w-sm lg:max-w-lg text-right">
         <AnimatePresence mode="wait">
           <motion.div
@@ -91,7 +162,7 @@ export const CharacterOverlay: React.FC<CharacterOverlayProps> = ({
               <span className="text-white font-bold drop-shadow">{character.specs.resonance}</span>
             </div>
 
-            {/* Archive Lore Description (Clean truncation on small screens to prevent overlap) */}
+            {/* Archive Lore Description */}
             <p className="text-xs sm:text-sm lg:text-lg text-white font-normal leading-relaxed drop-shadow-[0_3px_10px_rgba(0,0,0,0.9)] line-clamp-2 sm:line-clamp-3 lg:line-clamp-none">
               {character.lore}
             </p>

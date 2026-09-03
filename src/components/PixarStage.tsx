@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'motion/react';
 import { PixarCharacter } from '../data/characters';
+import { characterAudioManager } from '../utils/audioManager';
 
 interface PixarStageProps {
   character: PixarCharacter;
@@ -68,11 +69,10 @@ const charVariants: Variants = {
 
 export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isNearCursor, setIsNearCursor] = useState<boolean>(false);
   const [isMobilePlaying, setIsMobilePlaying] = useState<boolean>(false);
 
-  // Play character distinctive vocal sound effect whenever character switches
+  // Play distinctive voice audio safely through singleton audio manager
   useEffect(() => {
     setIsMobilePlaying(false);
     setIsNearCursor(false);
@@ -82,21 +82,13 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
       videoRef.current.currentTime = 0;
     }
 
-    // Initialize and play character voice WAV audio
+    // Play character vocal sound through singleton manager (guarantees no double sound)
     if (character.audioUrl) {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      const sound = new Audio(character.audioUrl);
-      sound.volume = 0.85;
-      audioRef.current = sound;
-      sound.play().catch(() => {});
+      characterAudioManager.play(character.audioUrl);
     }
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      characterAudioManager.stop();
     };
   }, [character]);
 
@@ -111,8 +103,6 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
       const distX = mouseX - centerX;
       const distY = mouseY - centerY;
       const distance = Math.hypot(distX, distY);
-
-      // Proximity threshold ~42% of screen dimension
       const proximityRadius = Math.min(window.innerWidth, window.innerHeight) * 0.42;
 
       if (distance < proximityRadius) {
@@ -134,10 +124,7 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
     const shouldPlay = isNearCursor || isMobilePlaying;
 
     if (shouldPlay) {
-      const playPromise = vid.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {});
-      }
+      vid.play().catch(() => {});
     } else {
       vid.pause();
     }
