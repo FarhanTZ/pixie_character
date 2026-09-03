@@ -3,30 +3,33 @@ import { motion } from 'motion/react';
 
 export const Header: React.FC = () => {
   return (
-    <header className="fixed top-0 left-0 w-full z-30 px-6 sm:px-12 py-6 flex justify-between items-center select-none pointer-events-none">
-      {/* Brand Title */}
+    <header className="fixed top-0 left-0 w-full z-30 px-6 sm:px-12 py-6 sm:py-8 flex justify-between items-center select-none pointer-events-none">
+      {/* Brand Title (Kiri Atas) */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="flex items-center gap-3"
+        className="flex items-center gap-3.5"
       >
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase text-white drop-shadow-md">
+        <h1 className="text-3xl sm:text-4xl font-black tracking-tighter uppercase text-white drop-shadow-lg">
           PIXIE
         </h1>
-        <span className="text-[10px] tracking-[0.25em] text-white/50 border border-white/20 px-2 py-0.5 rounded-full uppercase">
+        <span className="text-xs sm:text-sm font-mono tracking-[0.25em] text-white/70 border border-white/30 px-2.5 py-1 rounded-full uppercase backdrop-blur-sm bg-white/10">
           Universe
         </span>
       </motion.div>
 
-      {/* Navigation Sub-label */}
+      {/* Navigation Sub-label (Pojok Kanan Atas - Diperbesar) */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
-        className="text-xs tracking-[0.2em] uppercase font-mono text-white/60 hidden sm:block"
+        className="flex items-center gap-3"
       >
-        CHARACTER SHOWCASE
+        <span className="text-sm sm:text-base lg:text-lg font-bold tracking-[0.25em] uppercase font-mono text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] border-b-2 border-white/40 pb-0.5">
+          CHARACTER SHOWCASE
+        </span>
+        <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse shadow-[0_0_12px_rgba(255,255,255,0.9)]" />
       </motion.div>
     </header>
   );

@@ -6,9 +6,9 @@ import { PixieStage } from './components/PixieStage';
 import { CharacterOverlay } from './components/CharacterOverlay';
 import { NavigationButtons } from './components/NavigationButtons';
 import { BackgroundFX } from './components/BackgroundFX';
+import { SelectButton } from './components/SelectButton';
 
 export default function App() {
-  // Default awal diset ke Pixie ke-5 (index 4)
   const [currentIndex, setCurrentIndex] = useState<number>(4);
   const [direction, setDirection] = useState<number>(0);
 
@@ -26,7 +26,7 @@ export default function App() {
     setCurrentIndex((prev) => (prev - 1 + characterCount) % characterCount);
   }, [characterCount]);
 
-  // Wheel / Scroll event listener with precise delta check
+  // Wheel / Scroll event listener
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -48,7 +48,7 @@ export default function App() {
     return () => window.removeEventListener('wheel', handleWheel);
   }, [handleNext, handlePrev]);
 
-  // Touch Swipe navigation support for mobile / touchpads
+  // Touch Swipe navigation
   useEffect(() => {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -81,7 +81,7 @@ export default function App() {
     };
   }, [handleNext, handlePrev]);
 
-  // Keyboard navigation support (ArrowLeft / ArrowRight)
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -105,7 +105,7 @@ export default function App() {
       {/* Top Header Logo */}
       <Header />
 
-      {/* Fullscreen Pixie Stage (Background + Shrinking/Expanding Character) */}
+      {/* Fullscreen Pixie Stage */}
       <PixieStage
         character={currentCharacter}
         direction={direction}
@@ -117,6 +117,9 @@ export default function App() {
         onNext={handleNext}
         accentColor={currentCharacter.themeColor}
       />
+
+      {/* Glassmorphic Select Button (Bawah Tengah Karakter) */}
+      <SelectButton character={currentCharacter} />
 
       {/* Typography & Character Info Overlay */}
       <CharacterOverlay
