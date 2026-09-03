@@ -28,7 +28,6 @@ export default function App() {
         };
       }
     }
-    // Default to Pixie 5 (index 4)
     return {
       index: 4,
       selected: null,
@@ -205,13 +204,13 @@ export default function App() {
               accentColor={currentCharacter.themeColor}
             />
 
-            {/* Glassmorphic Select Button (Klik untuk masuk ke Direct URL Page) */}
+            {/* Glassmorphic Select Button (Bawah Tengah) */}
             <SelectButton
               character={currentCharacter}
               onSelect={handleSelectCharacter}
             />
 
-            {/* Typography & Character Info Overlay */}
+            {/* Typography, Avatar Portrait & Character Info Overlay */}
             <CharacterOverlay
               character={currentCharacter}
               currentIndex={currentIndex}

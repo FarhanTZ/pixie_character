@@ -63,7 +63,7 @@ export const CharacterOverlay: React.FC<CharacterOverlayProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* 2. BOTTOM-RIGHT LORE & SPECIFICATIONS (Diperbesar) */}
+      {/* 2. BOTTOM-RIGHT (Gambar Karakter di Pojok Kanan Bawah + Lore & Specs) */}
       <div className="fixed bottom-8 sm:bottom-12 right-6 sm:right-12 z-20 pointer-events-none select-none max-w-md lg:max-w-lg text-right">
         <AnimatePresence mode="wait">
           <motion.div
@@ -74,6 +74,15 @@ export const CharacterOverlay: React.FC<CharacterOverlayProps> = ({
             transition={{ duration: 0.45, ease: [0.25, 1, 0.5, 1] }}
             className="flex flex-col items-end"
           >
+            {/* GAMBAR KARAKTER DI POJOK KANAN BAWAH */}
+            <div className="relative w-36 h-36 sm:w-52 sm:h-52 rounded-3xl backdrop-blur-xl bg-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.35)] mb-3.5 overflow-hidden flex items-center justify-center">
+              <img
+                src={character.characterImage}
+                alt={`${character.name} Character`}
+                className="w-full h-full object-cover object-top scale-160 translate-y-4 sm:translate-y-7 pointer-events-none select-none"
+              />
+            </div>
+
             {/* Spec Taglines */}
             <div className="flex items-center gap-2.5 mb-2.5 text-xs sm:text-sm font-mono tracking-widest text-white/80 uppercase">
               <span>{character.specs.origin}</span>
