@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'motion/react';
 import { PixieCharacter } from '../data/characters';
 
@@ -44,7 +44,7 @@ const charVariants: Variants = {
   }),
   center: {
     opacity: 1,
-    scale: 1.15, // Scale diperbesar lebih mantap & megah
+    scale: 1.15,
     x: 0,
     rotate: 0,
     transition: {
@@ -67,9 +67,50 @@ const charVariants: Variants = {
 };
 
 export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isNearCursor, setIsNearCursor] = useState<boolean>(false);
+
+  // Handle Proximity & Video Playback
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+
+      const distX = mouseX - centerX;
+      const distY = mouseY - centerY;
+      const distance = Math.hypot(distX, distY);
+
+      // Zona interaktif di sekitar karakter (radius ~380px)
+      const proximityRadius = Math.min(window.innerWidth, window.innerHeight) * 0.42;
+
+      if (distance < proximityRadius) {
+        setIsNearCursor(true);
+      } else {
+        setIsNearCursor(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Control HTML5 video playback seamlessly on proximity
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+
+    if (isNearCursor) {
+      vid.play().catch(() => {});
+    } else {
+      vid.pause();
+    }
+  }, [isNearCursor, character]);
+
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none">
-      {/* 1. SEPARATE BACKGROUND LAYER */}
+      {/* 1. SEPARATE STATIC BACKGROUND LAYER */}
       <AnimatePresence custom={direction} mode="sync">
         <motion.div
           key={`bg-${character.id}`}
@@ -88,7 +129,7 @@ export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) 
         </motion.div>
       </AnimatePresence>
 
-      {/* 2. SEPARATE CHARACTER LAYER (Scale Diperbesar & Tetap Halus) */}
+      {/* 2. SEPARATE STATIC FOREGROUND CHARACTER LAYER (Crossfade saat video aktif) */}
       <div className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none z-10">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
@@ -103,10 +144,30 @@ export const PixieStage: React.FC<PixieStageProps> = ({ character, direction }) 
             <img
               src={character.characterImage}
               alt={character.name}
-              className="w-auto h-[90vh] sm:h-[94vh] max-w-[92vw] object-contain pixie-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)]"
+              className={`w-auto h-[90vh] sm:h-[94vh] max-w-[92vw] object-contain pixie-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)] transition-opacity duration-500 ${
+                isNearCursor ? 'opacity-0' : 'opacity-100'
+              }`}
             />
           </motion.div>
         </AnimatePresence>
+      </div>
+
+      {/* 3. DIRECT FULLSCREEN VIDEO LAYER (Ultra Smooth 60fps Native Video Playback saat Kursor Dekat) */}
+      <div
+        className={`absolute inset-0 w-full h-full pointer-events-none z-15 transition-opacity duration-700 ${
+          isNearCursor ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <video
+          ref={videoRef}
+          key={`vid-${character.id}`}
+          src={character.videoUrl}
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="w-full h-full object-cover object-center"
+        />
       </div>
     </div>
   );

@@ -7,6 +7,9 @@ export interface PixieCharacter {
   accentColor: string;
   bgImage: string;
   characterImage: string;
+  videoUrl: string;
+  frameFolder: string;
+  frameCount: number;
   quote: string;
   lore: string;
   specs: {
@@ -26,6 +29,9 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     accentColor: '#FFA500',
     bgImage: '/assets/pixie/bg/pixie1.png',
     characterImage: '/assets/pixie/nobg/pixie1.png',
+    videoUrl: '/assets/pixie/video/pixie1.mp4',
+    frameFolder: '/assets/pixie/frames/pixie1',
+    frameCount: 48,
     quote: 'Lighting up the twilight with eternal starlight.',
     lore: 'Manifested from ethereal solar flares, Lumina bends surrounding light to veil its form and pierce deep stellar shadows.',
     specs: {
@@ -43,6 +49,9 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     accentColor: '#7000FF',
     bgImage: '/assets/pixie/bg/pixie2.png',
     characterImage: '/assets/pixie/nobg/pixie2.png',
+    videoUrl: '/assets/pixie/video/pixei2.mp4',
+    frameFolder: '/assets/pixie/frames/pixie2',
+    frameCount: 48,
     quote: 'Dissolving the boundaries of reality into pure digital pulse.',
     lore: 'Harnesses high-frequency quantum pulses to encode matter into binary streams, vanishing into encrypted cyberspace.',
     specs: {
@@ -60,6 +69,9 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     accentColor: '#00B4D8',
     bgImage: '/assets/pixie/bg/pixie3.png',
     characterImage: '/assets/pixie/nobg/pixie3.png',
+    videoUrl: '/assets/pixie/video/pixie3.mp4',
+    frameFolder: '/assets/pixie/frames/pixie3',
+    frameCount: 48,
     quote: 'Dancing through the slipstream of frictionless kinetic winds.',
     lore: 'Commands supersonic atmospheric currents, maneuvering with zero friction through tempest vortices.',
     specs: {
@@ -77,6 +89,9 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     accentColor: '#FF6B00',
     bgImage: '/assets/pixie/bg/pixie4.png',
     characterImage: '/assets/pixie/nobg/pixie4.png',
+    videoUrl: '/assets/pixie/video/pixie4.mp4',
+    frameFolder: '/assets/pixie/frames/pixie4',
+    frameCount: 48,
     quote: 'Awakening superheated celestial fire with fierce determination.',
     lore: 'Born from subterranean magma veins, emitting concentrated plasma waves that incinerate cosmic debris.',
     specs: {
@@ -94,6 +109,9 @@ export const PIXIE_CHARACTERS: PixieCharacter[] = [
     accentColor: '#8B5CF6',
     bgImage: '/assets/pixie/bg/pixie5.png',
     characterImage: '/assets/pixie/nobg/pixie5.png',
+    videoUrl: '/assets/pixie/video/pixie5.mp4',
+    frameFolder: '/assets/pixie/frames/pixie5',
+    frameCount: 48,
     quote: 'Resonating across the galactic depths of space and time.',
     lore: 'Synchronizes with deep gravitational frequencies across the universe, creating harmonic ripples that bend cosmic time.',
     specs: {
