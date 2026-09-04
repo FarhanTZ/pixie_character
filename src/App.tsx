@@ -10,6 +10,7 @@ import { SelectButton } from './components/SelectButton';
 import { CharacterDetailPage } from './components/CharacterDetailPage';
 import { IntroAnimation } from './components/IntroAnimation';
 import { CustomCursor } from './components/CustomCursor';
+import { characterAudioManager } from './utils/audioManager';
 
 export default function App() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
@@ -144,13 +145,23 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  // When Start Game intro completes, explicitly trigger initial character voice
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    if (currentCharacter.audioUrl) {
+      setTimeout(() => {
+        characterAudioManager.play(currentCharacter.audioUrl);
+      }, 300);
+    }
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-[#070709] text-white">
       {/* Pixar Magical Particle Spark Cursor Trail */}
       <CustomCursor character={showIntro ? undefined : activeChar} />
 
       {/* Pixar Iconic Opening Intro Animation */}
-      {showIntro && <IntroAnimation onComplete={() => setShowIntro(false)} />}
+      {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
 
       <AnimatePresence mode="wait">
         {selectedCharacter ? (

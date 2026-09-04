@@ -82,14 +82,10 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
       videoRef.current.currentTime = 0;
     }
 
-    // Play character vocal sound through singleton manager (guarantees no double sound)
+    // Play character vocal sound immediately
     if (character.audioUrl) {
       characterAudioManager.play(character.audioUrl);
     }
-
-    return () => {
-      characterAudioManager.stop();
-    };
   }, [character]);
 
   // DESKTOP ONLY: Proximity Mouse Move Playback
