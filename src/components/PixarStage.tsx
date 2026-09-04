@@ -72,7 +72,7 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
   const [isNearCursor, setIsNearCursor] = useState<boolean>(false);
   const [isMobilePlaying, setIsMobilePlaying] = useState<boolean>(false);
 
-  // Play distinctive voice audio safely through singleton audio manager
+  // Play distinctive voice audio only on explicit character navigation
   useEffect(() => {
     setIsMobilePlaying(false);
     setIsNearCursor(false);
@@ -82,11 +82,11 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
       videoRef.current.currentTime = 0;
     }
 
-    // Play character vocal sound immediately
-    if (character.audioUrl) {
+    // Only play character vocal sound on explicit arrow navigation (direction !== 0)
+    if (character.audioUrl && direction !== 0) {
       characterAudioManager.play(character.audioUrl);
     }
-  }, [character]);
+  }, [character, direction]);
 
   // DESKTOP ONLY: Proximity Mouse Move Playback
   useEffect(() => {

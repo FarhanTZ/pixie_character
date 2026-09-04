@@ -163,9 +163,10 @@ export default function App() {
       {/* Pixar Iconic Opening Intro Animation */}
       {showIntro && <IntroAnimation onComplete={handleIntroComplete} />}
 
+      {/* PAGE 1 & PAGE 2 ROUTING */}
       <AnimatePresence mode="wait">
         {selectedCharacter ? (
-          /* PAGE 2: Direct URL Scroll-Driven Frame Animation Detail Page */
+          /* PAGE 2: Direct URL Scroll-Driven Frame Animation Detail Page with Integrated Typing Battle */
           <CharacterDetailPage
             key={`detail-${selectedCharacter.id}`}
             character={selectedCharacter}
@@ -196,11 +197,13 @@ export default function App() {
               accentColor={currentCharacter.themeColor}
             />
 
-            {/* Glassmorphic Select Button (Bawah Tengah) */}
-            <SelectButton
-              character={currentCharacter}
-              onSelect={handleSelectCharacter}
-            />
+            {/* BOTTOM CENTER: SELECT CHARACTER BUTTON */}
+            <div className="fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 select-none">
+              <SelectButton
+                character={currentCharacter}
+                onSelect={handleSelectCharacter}
+              />
+            </div>
 
             {/* Typography, Character Info Overlay & Bottom-Right Image */}
             <CharacterOverlay
