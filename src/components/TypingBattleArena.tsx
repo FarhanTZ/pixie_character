@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PixarCharacter } from '../data/characters';
-import { getRandomBattleWord } from '../data/gameData';
+import { getRandomBattleWord, DifficultyLevel, DIFFICULTY_SETTINGS } from '../data/gameData';
 import { characterAudioManager } from '../utils/audioManager';
 import { sfxManager } from '../utils/sfxManager';
 
@@ -28,6 +28,7 @@ interface DamageFloater {
 }
 
 export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character, onExit }) => {
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
   const [playerHp, setPlayerHp] = useState<number>(100);
   const [energy, setEnergy] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
@@ -57,6 +58,8 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
   const spawnTimerRef = useRef<number | null>(null);
   const gameLoopRef = useRef<number | null>(null);
   const nextWordIdRef = useRef<number>(1);
+  const fallingWordsRef = useRef<FallingWord[]>([]);
+  const lastLaneRef = useRef<number>(-1);
 
   // Preload character WebP animation frames (like CharacterDetailPage)
   useEffect(() => {
@@ -163,31 +166,61 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
     }, 900);
   };
 
-  // Spawn a new falling word from top
-  const spawnWord = useCallback(() => {
-    // Dynamic English word length scaling (words get slightly longer with higher combo/clears)
-    const minLen = Math.min(3 + Math.floor(wordsCleared / 10), 5);
-    const maxLen = Math.min(6 + Math.floor(wordsCleared / 7), 10);
-    const randomWord = getRandomBattleWord(minLen, maxLen);
-    const lane = Math.floor(Math.random() * 3); // 0 (left), 1 (mid), 2 (right)
+  const diffConfig = DIFFICULTY_SETTINGS[difficulty];
 
-    setFallingWords((prev) => {
-      if (prev.some((w) => w.word === randomWord && w.y < 40)) {
-        return prev;
-      }
-      return [
-        ...prev,
-        {
-          id: nextWordIdRef.current++,
-          word: randomWord,
-          y: 0,
-          speed: 0.28 + Math.random() * 0.15,
-          lane,
-          isTarget: false,
-        },
-      ];
+  // Spawn a new falling word from top (with anti-overlap algorithm)
+  const spawnWord = useCallback(() => {
+    const minLen = diffConfig.minLen;
+    const maxLen = diffConfig.maxLen;
+    const randomWord = getRandomBattleWord(minLen, maxLen);
+    
+    // Find available lane that doesn't have a word near the top (y < 28%)
+    const currentWords = fallingWordsRef.current;
+    const availableLanes = [0, 1, 2].filter((lane) => {
+      return !currentWords.some((w) => w.lane === lane && w.y < 28);
     });
-  }, [character.id, wordsCleared]);
+
+    // Pick lane (prefer available lanes, avoid repeating previous lane if possible)
+    let selectedLane: number;
+    if (availableLanes.length > 0) {
+      const diffLanes = availableLanes.filter((l) => l !== lastLaneRef.current);
+      selectedLane = diffLanes.length > 0
+        ? diffLanes[Math.floor(Math.random() * diffLanes.length)]
+        : availableLanes[Math.floor(Math.random() * availableLanes.length)];
+    } else {
+      // All lanes have a word near the top, find lane with lowest word (furthest down)
+      const topWordPerLane = [0, 1, 2].map((lane) => {
+        const wordsInLane = currentWords.filter((w) => w.lane === lane);
+        const topY = wordsInLane.reduce((min, w) => Math.min(min, w.y), 100);
+        return { lane, topY };
+      });
+      topWordPerLane.sort((a, b) => b.topY - a.topY); // biggest topY first (furthest down)
+      selectedLane = topWordPerLane[0].lane;
+      
+      // If even the furthest down is still too close to top (< 18%), wait next cycle
+      if (topWordPerLane[0].topY < 18) return;
+    }
+
+    lastLaneRef.current = selectedLane;
+
+    // Check duplicate word
+    if (currentWords.some((w) => w.word === randomWord)) return;
+
+    // Consistent constant falling speed across words based on difficulty
+    const baseSpeed = diffConfig.baseSpeed + Math.min(wordsCleared * 0.002, 0.08);
+
+    const newWord: FallingWord = {
+      id: nextWordIdRef.current++,
+      word: randomWord,
+      y: 0,
+      speed: baseSpeed,
+      lane: selectedLane,
+      isTarget: false,
+    };
+
+    fallingWordsRef.current = [...fallingWordsRef.current, newWord];
+    setFallingWords(fallingWordsRef.current);
+  }, [diffConfig, wordsCleared]);
 
   // Main Game Loop for falling words animation & life check
   useEffect(() => {
@@ -195,46 +228,43 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
 
     spawnTimerRef.current = window.setInterval(() => {
       spawnWord();
-    }, 1800);
+    }, diffConfig.spawnIntervalMs);
 
     spawnWord();
-    const t = setTimeout(() => spawnWord(), 800);
+    const t = setTimeout(() => spawnWord(), Math.round(diffConfig.spawnIntervalMs / 2));
 
     let lastTime = performance.now();
     const updateLoop = (now: number) => {
-      const delta = Math.min((now - lastTime) / 16.67, 2.5);
+      const delta = Math.min((now - lastTime) / 16.67, 2.0);
       lastTime = now;
 
-      setFallingWords((prev) => {
-        let missedCount = 0;
-        const updated = prev
-          .map((w) => ({
-            ...w,
-            y: w.y + w.speed * delta,
-          }))
-          .filter((w) => {
-            if (w.y >= 92) {
-              missedCount++;
-              return false;
-            }
-            return true;
-          });
+      const missedWords: FallingWord[] = [];
+      const remaining: FallingWord[] = [];
 
-        if (missedCount > 0) {
-          playSfx('enemyHit');
-          setCombo(0);
-          setPlayerHp((hp) => {
-            const nextHp = hp - missedCount * 12;
-            if (nextHp <= 0) {
-              setGameState('gameover');
-              return 0;
-            }
-            return nextHp;
-          });
+      for (const w of fallingWordsRef.current) {
+        const nextY = w.y + w.speed * delta;
+        if (nextY >= 90) {
+          missedWords.push(w);
+        } else {
+          remaining.push({ ...w, y: nextY });
         }
+      }
 
-        return updated;
-      });
+      fallingWordsRef.current = remaining;
+      setFallingWords(remaining);
+
+      if (missedWords.length > 0) {
+        playSfx('enemyHit');
+        setCombo(0);
+        setPlayerHp((hp) => {
+          const nextHp = hp - missedWords.length * diffConfig.damagePerMiss;
+          if (nextHp <= 0) {
+            setGameState('gameover');
+            return 0;
+          }
+          return nextHp;
+        });
+      }
 
       gameLoopRef.current = requestAnimationFrame(updateLoop);
     };
@@ -246,7 +276,7 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
       if (spawnTimerRef.current !== null) clearInterval(spawnTimerRef.current);
       if (gameLoopRef.current !== null) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [gameState, spawnWord, playSfx]);
+  }, [gameState, spawnWord, playSfx, diffConfig]);
 
   // Keep input focused
   useEffect(() => {
@@ -284,13 +314,13 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
       setMaxCombo((prev) => Math.max(prev, newCombo));
 
       const isCrit = newCombo % 4 === 0;
-      const basePoints = 120 + matched.word.length * 20;
+      const basePoints = Math.round((120 + matched.word.length * 20) * diffConfig.scoreMultiplier);
       const points = isCrit ? Math.round(basePoints * 2.2) : basePoints;
 
       setScore((prev) => prev + points * Math.max(1, Math.floor(newCombo / 3)));
       setWordsCleared((prev) => {
         const next = prev + 1;
-        if (next >= 35) {
+        if (next >= diffConfig.targetWords) {
           setGameState('victory');
           playSfx('victory');
         }
@@ -324,22 +354,26 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
       spawnDamage(points, isCrit, matched.lane);
       playSfx(isCrit ? 'crit' : 'correct');
 
-      setFallingWords((prev) => prev.filter((w) => w.id !== matched.id));
+      fallingWordsRef.current = fallingWordsRef.current.filter((w) => w.id !== matched.id);
+      setFallingWords(fallingWordsRef.current);
       setUserInput('');
     }
   };
 
   // Ultimate Skill
   const handleUnleashUltimate = () => {
-    if (energy < 100 || gameState !== 'playing' || fallingWords.length === 0) return;
+    if (energy < 100 || gameState !== 'playing' || fallingWordsRef.current.length === 0) return;
 
     setEnergy(0);
-    const clearCount = fallingWords.length;
+    const clearCount = fallingWordsRef.current.length;
     const ultimateDmg = 500 + clearCount * 150;
 
     spawnDamage(ultimateDmg, true, 1);
     playSfx('crit');
     advanceFrameOnTyping(20); // Big animation surge
+
+    fallingWordsRef.current = [];
+    setFallingWords([]);
 
     if (character.audioUrl) {
       characterAudioManager.play(character.audioUrl);
@@ -400,8 +434,23 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
           </div>
         </div>
 
-        {/* Center Score & Combo Badge */}
-        <div className="flex items-center gap-4 bg-white/25 backdrop-blur-2xl px-5 py-2 rounded-2xl border border-white/60 shadow-lg">
+        {/* Center Score, Difficulty Badge, & Combo Badge */}
+        <div className="flex items-center gap-3 sm:gap-4 bg-white/25 backdrop-blur-2xl px-4 sm:px-5 py-2 rounded-2xl border border-white/60 shadow-lg">
+          {/* Active Difficulty Badge */}
+          <span
+            className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider border shadow-sm ${
+              difficulty === 'easy'
+                ? 'bg-emerald-400 text-emerald-950 border-emerald-300'
+                : difficulty === 'medium'
+                ? 'bg-amber-400 text-amber-950 border-amber-300'
+                : 'bg-rose-500 text-white border-rose-300'
+            }`}
+          >
+            {difficulty}
+          </span>
+
+          <div className="h-6 w-px bg-white/40" />
+
           <div className="flex flex-col items-center">
             <span className="text-[10px] font-mono text-white/90 tracking-widest uppercase font-bold drop-shadow">SCORE</span>
             <span className="text-xl sm:text-2xl font-black font-mono text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.7)]">
@@ -427,7 +476,7 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
           <div className="flex flex-col items-center">
             <span className="text-[10px] font-mono text-white/90 tracking-widest uppercase font-bold drop-shadow">CLEARED</span>
             <span className="text-xl sm:text-2xl font-black font-mono text-cyan-300 drop-shadow">
-              {wordsCleared}/35
+              {wordsCleared}/{diffConfig.targetWords}
             </span>
           </div>
 

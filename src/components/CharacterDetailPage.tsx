@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PixarCharacter, PIXAR_CHARACTERS } from '../data/characters';
-import { getRandomBattleWord } from '../data/gameData';
+import { getRandomBattleWord, DifficultyLevel, DIFFICULTY_SETTINGS } from '../data/gameData';
 import { sfxManager } from '../utils/sfxManager';
 import { characterAudioManager } from '../utils/audioManager';
 
@@ -53,6 +53,10 @@ interface CharacterDetailPageProps {
 export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ character, onBack }) => {
   const currentSkill = CHARACTER_SKILLS[character.id] || CHARACTER_SKILLS['pixar-01'];
 
+  const [showDifficultyPicker, setShowDifficultyPicker] = useState<boolean>(false);
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
+  const diffConfig = DIFFICULTY_SETTINGS[difficulty];
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imagesRef = useRef<HTMLImageElement[]>([]);
@@ -83,6 +87,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
   const spawnTimerRef = useRef<number | null>(null);
   const gameLoopRef = useRef<number | null>(null);
   const fallingWordsRef = useRef<Array<{ id: number; word: string; y: number; speed: number; lane: number }>>([]);
+  const lastLaneRef = useRef<number>(-1);
   const freezeUntilRef = useRef<number>(0);
   const slowUntilRef = useRef<number>(0);
   const [hitFlash, setHitFlash] = useState<boolean>(false);
@@ -215,27 +220,53 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
     }, 1100);
   };
 
-  // Spawn word from data
+  // Spawn word from data (with anti-overlap lane algorithm)
   const spawnWord = useCallback(() => {
-    const minLen = Math.min(3 + Math.floor(wordsCleared / 10), 5);
-    const maxLen = Math.min(6 + Math.floor(wordsCleared / 7), 10);
+    const minLen = diffConfig.minLen;
+    const maxLen = diffConfig.maxLen;
     const randomWord = getRandomBattleWord(minLen, maxLen);
-    const lane = Math.floor(Math.random() * 3);
 
     const currentWords = fallingWordsRef.current;
-    if (currentWords.some((w) => w.word === randomWord && w.y < 35)) return;
+
+    // Find available lane that doesn't have a word near the top (y < 28%)
+    const availableLanes = [0, 1, 2].filter((lane) => {
+      return !currentWords.some((w) => w.lane === lane && w.y < 28);
+    });
+
+    let selectedLane: number;
+    if (availableLanes.length > 0) {
+      const diffLanes = availableLanes.filter((l) => l !== lastLaneRef.current);
+      selectedLane = diffLanes.length > 0
+        ? diffLanes[Math.floor(Math.random() * diffLanes.length)]
+        : availableLanes[Math.floor(Math.random() * availableLanes.length)];
+    } else {
+      const topWordPerLane = [0, 1, 2].map((lane) => {
+        const wordsInLane = currentWords.filter((w) => w.lane === lane);
+        const topY = wordsInLane.reduce((min, w) => Math.min(min, w.y), 100);
+        return { lane, topY };
+      });
+      topWordPerLane.sort((a, b) => b.topY - a.topY);
+      selectedLane = topWordPerLane[0].lane;
+      if (topWordPerLane[0].topY < 18) return;
+    }
+
+    lastLaneRef.current = selectedLane;
+
+    if (currentWords.some((w) => w.word === randomWord)) return;
+
+    const baseSpeed = (diffConfig.baseSpeed * 0.5) + Math.min(wordsCleared * 0.0015, 0.04);
 
     const newWord = {
       id: nextWordIdRef.current++,
       word: randomWord,
       y: 0,
-      speed: 0.11 + Math.random() * 0.05,
-      lane,
+      speed: baseSpeed,
+      lane: selectedLane,
     };
 
     fallingWordsRef.current = [...fallingWordsRef.current, newWord];
     setFallingWords(fallingWordsRef.current);
-  }, [wordsCleared]);
+  }, [diffConfig, wordsCleared]);
 
   // Battle Mode Game Loop (smooth falling word animation, skill modifiers, and collision)
   useEffect(() => {
@@ -243,10 +274,10 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
 
     spawnTimerRef.current = window.setInterval(() => {
       spawnWord();
-    }, 2200);
+    }, diffConfig.spawnIntervalMs);
 
     spawnWord();
-    const t = setTimeout(() => spawnWord(), 800);
+    const t = setTimeout(() => spawnWord(), Math.round(diffConfig.spawnIntervalMs / 2));
 
     let lastTime = performance.now();
     const updateLoop = (now: number) => {
@@ -281,11 +312,11 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
         setTimeout(() => setHitFlash(false), 250);
 
         for (const _m of missedWords) {
-          spawnDamage(`-15 HP MISS!`, 'miss');
+          spawnDamage(`-${diffConfig.damagePerMiss} HP MISS!`, 'miss');
         }
 
         setPlayerHp((hp) => {
-          const nextHp = hp - missedWords.length * 15;
+          const nextHp = hp - missedWords.length * diffConfig.damagePerMiss;
           if (nextHp <= 0) {
             setBattleState('gameover');
             return 0;
@@ -304,7 +335,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
       if (spawnTimerRef.current !== null) clearInterval(spawnTimerRef.current);
       if (gameLoopRef.current !== null) cancelAnimationFrame(gameLoopRef.current);
     };
-  }, [isBattleMode, battleState, spawnWord, playSfx]);
+  }, [isBattleMode, battleState, spawnWord, playSfx, diffConfig]);
 
   // Focus input on battle mode
   useEffect(() => {
@@ -338,7 +369,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
       setMaxCombo((prev) => Math.max(prev, newCombo));
 
       const isCrit = newCombo % 4 === 0;
-      const basePoints = 120 + matched.word.length * 20;
+      const basePoints = Math.round((120 + matched.word.length * 20) * diffConfig.scoreMultiplier);
       const points = isCrit ? Math.round(basePoints * 2.2) : basePoints;
 
       // Check Aurora Lumina 2x score during Solar Flare freeze
@@ -348,7 +379,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
       setScore((prev) => prev + finalPoints * Math.max(1, Math.floor(newCombo / 3)));
       setWordsCleared((prev) => {
         const next = prev + 1;
-        if (next >= 35) {
+        if (next >= diffConfig.targetWords) {
           setBattleState('victory');
           playSfx('victory');
         }
@@ -469,7 +500,10 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [energy, isBattleMode, handleClearInput]);
 
-  const handleStartBattle = () => {
+  const handleStartBattle = (selectedDiff?: DifficultyLevel) => {
+    const activeDiff = selectedDiff || difficulty;
+    setDifficulty(activeDiff);
+    setShowDifficultyPicker(false);
     setIsBattleMode(true);
     setBattleState('playing');
     setUserInput('');
@@ -491,6 +525,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
 
   const handleExitBattle = () => {
     setIsBattleMode(false);
+    setShowDifficultyPicker(false);
     setUserInput('');
     fallingWordsRef.current = [];
     setFallingWords([]);
@@ -597,20 +632,42 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
 
         {/* CENTER STATS WHEN IN BATTLE MODE */}
         {isBattleMode && (
-          <div className="flex items-center gap-3 sm:gap-4 bg-white/25 backdrop-blur-2xl px-4 py-1.5 rounded-2xl border border-white/60 shadow-lg">
+          <div className="flex items-center gap-3 sm:gap-4 bg-white/25 backdrop-blur-2xl px-4 sm:px-5 py-1.5 rounded-2xl border border-white/60 shadow-lg">
+            {/* Active Difficulty Badge */}
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-black uppercase tracking-wider border shadow-sm ${
+                difficulty === 'easy'
+                  ? 'bg-emerald-400 text-emerald-950 border-emerald-300'
+                  : difficulty === 'medium'
+                  ? 'bg-amber-400 text-amber-950 border-amber-300'
+                  : 'bg-rose-500 text-white border-rose-300'
+              }`}
+            >
+              {difficulty}
+            </span>
+
+            <div className="h-5 w-px bg-white/40" />
+
             <div className="flex flex-col items-center">
               <span className="text-[9px] font-mono text-white/90 font-bold uppercase">SCORE</span>
-              <span className="text-base sm:text-lg font-mono font-black text-amber-300 drop-shadow">{score}</span>
+              <span className="text-sm sm:text-base font-mono font-black text-amber-300 drop-shadow">{score}</span>
             </div>
             <div className="h-6 w-px bg-white/40" />
             <div className="flex flex-col items-center">
               <span className="text-[9px] font-mono text-white/90 font-bold uppercase">COMBO</span>
-              <span className="text-base sm:text-lg font-mono font-black text-pink-300 drop-shadow">{combo}x</span>
+              <span className="text-sm sm:text-base font-mono font-black text-pink-300 drop-shadow">{combo}x</span>
+            </div>
+            <div className="h-6 w-px bg-white/40" />
+            <div className="flex flex-col items-center">
+              <span className="text-[9px] font-mono text-white/90 font-bold uppercase">CLEARED</span>
+              <span className="text-sm sm:text-base font-mono font-black text-cyan-300 drop-shadow">
+                {wordsCleared}/{diffConfig.targetWords}
+              </span>
             </div>
             <div className="h-6 w-px bg-white/40" />
             <div className="flex flex-col items-center">
               <span className="text-[9px] font-mono text-white/90 font-bold uppercase">SHIELD</span>
-              <span className="text-base sm:text-lg font-mono font-black text-emerald-300 drop-shadow">{playerHp}%</span>
+              <span className="text-sm sm:text-base font-mono font-black text-emerald-300 drop-shadow">{playerHp}%</span>
             </div>
           </div>
         )}
@@ -796,68 +853,189 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.25 }}
                   transition={{ duration: 0.5 }}
-                  className="backdrop-blur-2xl bg-white/20 p-6 sm:p-8 lg:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.3)]"
+                  className="backdrop-blur-2xl bg-white/20 p-6 sm:p-8 lg:p-10 rounded-3xl border border-white/50 shadow-[0_16px_40px_rgba(0,0,0,0.3)] overflow-hidden"
                 >
-                  <div className="text-[10px] sm:text-xs font-mono font-bold tracking-[0.3em] sm:tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
-                    PIXAR SPECIFICATION
-                  </div>
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white mb-3 sm:mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
-                    {character.name}
-                  </h1>
-                  <p className="text-sm sm:text-base lg:text-lg text-white italic font-medium mb-3 sm:mb-5 drop-shadow">
-                    "{character.quote}"
-                  </p>
-                  <p className="text-xs sm:text-sm text-white/95 leading-relaxed font-normal drop-shadow mb-5 sm:mb-6">
-                    {character.lore}
-                  </p>
-                  <div className="flex flex-col items-stretch">
-                    <motion.button
-                      onClick={handleStartBattle}
-                      whileHover={{ scale: 1.03, y: -2 }}
-                      whileTap={{ scale: 0.97, y: 0 }}
-                      className="relative group overflow-hidden w-full py-3.5 px-6 rounded-full border border-white/70 hover:border-white backdrop-blur-2xl bg-white/20 hover:bg-white/35 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
-                      style={{
-                        boxShadow: `0 8px 32px 0 rgba(255, 255, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 0 25px ${character.themeColor}35`,
-                      }}
-                    >
-                      {/* Shimmer Light Reflection across crystal glass */}
-                      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+                  <AnimatePresence mode="wait">
+                    {!showDifficultyPicker ? (
+                      /* STATE A: NORMAL CHARACTER SPECIFICATION CARD */
+                      <motion.div
+                        key="character-spec"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <div className="text-[10px] sm:text-xs font-mono font-bold tracking-[0.3em] sm:tracking-[0.4em] uppercase text-white/90 mb-2 drop-shadow">
+                          PIXAR SPECIFICATION
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white mb-3 sm:mb-4 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                          {character.name}
+                        </h1>
+                        <p className="text-sm sm:text-base lg:text-lg text-white italic font-medium mb-3 sm:mb-5 drop-shadow">
+                          "{character.quote}"
+                        </p>
+                        <p className="text-xs sm:text-sm text-white/95 leading-relaxed font-normal drop-shadow mb-5 sm:mb-6">
+                          {character.lore}
+                        </p>
+                        <div className="flex flex-col items-stretch">
+                          <motion.button
+                            onClick={() => setShowDifficultyPicker(true)}
+                            whileHover={{ scale: 1.03, y: -2 }}
+                            whileTap={{ scale: 0.97, y: 0 }}
+                            className="relative group overflow-hidden w-full py-3.5 px-6 rounded-full border border-white/70 hover:border-white backdrop-blur-2xl bg-white/20 hover:bg-white/35 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
+                            style={{
+                              boxShadow: `0 8px 32px 0 rgba(255, 255, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.6), 0 0 25px ${character.themeColor}35`,
+                            }}
+                          >
+                            {/* Shimmer Light Reflection */}
+                            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
 
-                      {/* Dynamic Light Glow Accent */}
-                      <div
-                        className="absolute inset-0 opacity-25 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none rounded-full"
-                        style={{
-                          background: `radial-gradient(circle at center, ${character.themeColor} 0%, transparent 75%)`,
-                        }}
-                      />
+                            {/* Dynamic Glow Accent */}
+                            <div
+                              className="absolute inset-0 opacity-25 group-hover:opacity-50 transition-opacity duration-300 pointer-events-none rounded-full"
+                              style={{
+                                background: `radial-gradient(circle at center, ${character.themeColor} 0%, transparent 75%)`,
+                              }}
+                            />
 
-                      {/* Content */}
-                      <div className="relative z-10 flex items-center justify-center gap-2.5 text-white font-mono font-black text-xs sm:text-sm uppercase tracking-[0.2em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
-                        {/* Glowing status dot */}
-                        <span
-                          className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fff]"
-                          style={{
-                            backgroundColor: character.themeColor,
-                            boxShadow: `0 0 10px ${character.themeColor}`,
-                          }}
-                        />
-                        <span className="font-extrabold whitespace-nowrap">
-                          PLAY TYPING BATTLE
-                        </span>
-                        <svg
-                          className="w-3.5 h-3.5 text-white group-hover:translate-x-1 transition-transform drop-shadow"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </div>
-                    </motion.button>
-                  </div>
+                            {/* Content */}
+                            <div className="relative z-10 flex items-center justify-center gap-2.5 text-white font-mono font-black text-xs sm:text-sm uppercase tracking-[0.2em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]">
+                              <span
+                                className="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#fff]"
+                                style={{
+                                  backgroundColor: character.themeColor,
+                                  boxShadow: `0 0 10px ${character.themeColor}`,
+                                }}
+                              />
+                              <span className="font-extrabold whitespace-nowrap">
+                                PLAY TYPING BATTLE
+                              </span>
+                              <svg
+                                className="w-3.5 h-3.5 text-white group-hover:translate-x-1 transition-transform drop-shadow"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <polyline points="9 18 15 12 9 6" />
+                              </svg>
+                            </div>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      /* STATE B: MORPHED INTO DIFFICULTY SELECTOR CARD */
+                      <motion.div
+                        key="difficulty-picker"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.25 }}
+                        className="flex flex-col"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-[10px] sm:text-xs font-mono font-bold tracking-[0.3em] uppercase text-white/90 drop-shadow">
+                            CHALLENGE LEVEL
+                          </div>
+                          <button
+                            onClick={() => setShowDifficultyPicker(false)}
+                            className="px-2.5 py-0.5 rounded-full bg-white/20 hover:bg-white/40 text-white font-mono text-[10px] uppercase font-bold tracking-wider transition-all border border-white/40 cursor-pointer"
+                          >
+                            ✕ CANCEL
+                          </button>
+                        </div>
+
+                        <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+                          SELECT DIFFICULTY
+                        </h2>
+                        <p className="text-xs text-white/90 leading-relaxed font-mono mb-4 drop-shadow">
+                          Choose your typing speed & word complexity before launching into combat with {character.name}.
+                        </p>
+
+                        <div className="space-y-2.5 w-full">
+                          {/* 1. EASY */}
+                          <motion.button
+                            whileHover={{ scale: 1.02, x: 4 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleStartBattle('easy')}
+                            className="w-full text-left p-3.5 rounded-2xl bg-white/20 hover:bg-emerald-500/30 border border-emerald-400/50 hover:border-emerald-300 transition-all cursor-pointer shadow-lg group flex items-center justify-between"
+                          >
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                                <span className="font-mono font-black text-sm text-emerald-300 uppercase tracking-wider">
+                                  EASY
+                                </span>
+                                <span className="text-[9px] font-mono text-white/70 px-2 py-0.5 rounded-full bg-black/30 border border-white/20">
+                                  1.0x SCORE
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-white/90 font-mono mt-1">
+                                Short 3–5 letter words • Relaxed speed • 25 target
+                              </span>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-white/20 group-hover:bg-emerald-400 group-hover:text-emerald-950 flex items-center justify-center text-white transition-all shadow">
+                              ➔
+                            </div>
+                          </motion.button>
+
+                          {/* 2. MEDIUM */}
+                          <motion.button
+                            whileHover={{ scale: 1.02, x: 4 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleStartBattle('medium')}
+                            className="w-full text-left p-3.5 rounded-2xl bg-white/20 hover:bg-amber-500/30 border border-amber-400/50 hover:border-amber-300 transition-all cursor-pointer shadow-lg group flex items-center justify-between"
+                          >
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]" />
+                                <span className="font-mono font-black text-sm text-amber-300 uppercase tracking-wider">
+                                  MEDIUM (RECOMMENDED)
+                                </span>
+                                <span className="text-[9px] font-mono text-amber-300 px-2 py-0.5 rounded-full bg-black/30 border border-amber-400/40 font-bold">
+                                  1.5x SCORE
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-white/90 font-mono mt-1">
+                                Standard 5–8 letter words • Normal speed • 35 target
+                              </span>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-white/20 group-hover:bg-amber-400 group-hover:text-amber-950 flex items-center justify-center text-white transition-all shadow">
+                              ➔
+                            </div>
+                          </motion.button>
+
+                          {/* 3. HARD */}
+                          <motion.button
+                            whileHover={{ scale: 1.02, x: 4 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleStartBattle('hard')}
+                            className="w-full text-left p-3.5 rounded-2xl bg-white/20 hover:bg-rose-500/30 border border-rose-400/50 hover:border-rose-300 transition-all cursor-pointer shadow-lg group flex items-center justify-between"
+                          >
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]" />
+                                <span className="font-mono font-black text-sm text-rose-300 uppercase tracking-wider">
+                                  HARD (PRO MODE)
+                                </span>
+                                <span className="text-[9px] font-mono text-rose-300 px-2 py-0.5 rounded-full bg-black/30 border border-rose-400/40 font-bold">
+                                  2.2x SCORE
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-white/90 font-mono mt-1">
+                                Complex 7–12 letter words • Fast speed • 50 target
+                              </span>
+                            </div>
+                            <div className="w-8 h-8 rounded-full bg-white/20 group-hover:bg-rose-500 group-hover:text-white flex items-center justify-center text-white transition-all shadow">
+                              ➔
+                            </div>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
 
                 {/* SCROLL TO ADVANCE ANIMATION HINT (BELOW CARD) */}
@@ -1100,7 +1278,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
 
               <div className="flex gap-3 w-full mt-2">
                 <button
-                  onClick={handleStartBattle}
+                  onClick={() => handleStartBattle()}
                   className="flex-1 py-3 rounded-full bg-white text-black font-mono font-black text-xs uppercase tracking-widest hover:scale-105 transition-all cursor-pointer shadow-lg"
                 >
                   PLAY AGAIN
