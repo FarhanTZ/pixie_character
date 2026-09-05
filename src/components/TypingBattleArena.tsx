@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PixarCharacter } from '../data/characters';
-import { CHARACTER_WORDS } from '../data/gameData';
+import { getRandomBattleWord } from '../data/gameData';
 import { characterAudioManager } from '../utils/audioManager';
 import { sfxManager } from '../utils/sfxManager';
 
@@ -165,8 +165,10 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
 
   // Spawn a new falling word from top
   const spawnWord = useCallback(() => {
-    const wordList = CHARACTER_WORDS[character.id] || CHARACTER_WORDS['pixar-01'];
-    const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+    // Dynamic English word length scaling (words get slightly longer with higher combo/clears)
+    const minLen = Math.min(3 + Math.floor(wordsCleared / 10), 5);
+    const maxLen = Math.min(6 + Math.floor(wordsCleared / 7), 10);
+    const randomWord = getRandomBattleWord(minLen, maxLen);
     const lane = Math.floor(Math.random() * 3); // 0 (left), 1 (mid), 2 (right)
 
     setFallingWords((prev) => {
@@ -185,7 +187,7 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
         },
       ];
     });
-  }, [character.id]);
+  }, [character.id, wordsCleared]);
 
   // Main Game Loop for falling words animation & life check
   useEffect(() => {

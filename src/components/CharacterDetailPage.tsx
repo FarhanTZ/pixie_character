@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PixarCharacter } from '../data/characters';
+import { PixarCharacter, PIXAR_CHARACTERS } from '../data/characters';
+import { getRandomBattleWord } from '../data/gameData';
 import { sfxManager } from '../utils/sfxManager';
 import { characterAudioManager } from '../utils/audioManager';
 
@@ -216,14 +217,9 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
 
   // Spawn word from data
   const spawnWord = useCallback(() => {
-    const wordList = [
-      'SOLAR', 'LIGHT', 'PHOTON', 'RADIANCE', 'STARS', 'AURORA', 'LUMEN', 'BEAM',
-      'CRYSTAL', 'SPECTRUM', 'FLASH', 'GLOW', 'PRISM', 'ETERNAL', 'DAYLIGHT', 'BRILLIANT',
-      'SUPERNOVA', 'HYPERION', 'HELIOS', 'IGNITE', 'CELESTIAL', 'SOLARFLARE', 'CYBER',
-      'QUANTUM', 'VOID', 'MATRIX', 'GLITCH', 'CIPHER', 'SYNTAX', 'BINARY', 'TEMPEST',
-      'INFERNO', 'PLASMA', 'NEBULA', 'GRAVITY', 'PULSAR', 'ECLIPSE'
-    ];
-    const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+    const minLen = Math.min(3 + Math.floor(wordsCleared / 10), 5);
+    const maxLen = Math.min(6 + Math.floor(wordsCleared / 7), 10);
+    const randomWord = getRandomBattleWord(minLen, maxLen);
     const lane = Math.floor(Math.random() * 3);
 
     const currentWords = fallingWordsRef.current;
@@ -239,7 +235,7 @@ export const CharacterDetailPage: React.FC<CharacterDetailPageProps> = ({ charac
 
     fallingWordsRef.current = [...fallingWordsRef.current, newWord];
     setFallingWords(fallingWordsRef.current);
-  }, []);
+  }, [wordsCleared]);
 
   // Battle Mode Game Loop (smooth falling word animation, skill modifiers, and collision)
   useEffect(() => {
