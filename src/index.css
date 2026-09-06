@@ -16,8 +16,70 @@
   will-change: transform;
 }
 
+/* GPU Accelerated Keyframe Animations */
+@keyframes gpu-float-1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(40px, -30px, 0) scale(1.15); }
+}
+
+@keyframes gpu-float-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-35px, 25px, 0) scale(1.18); }
+}
+
+@keyframes gpu-float-3 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-30px, -35px, 0) scale(1.12); }
+}
+
+@keyframes gpu-float-4 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(30px, 25px, 0) scale(1.14); }
+}
+
+@keyframes gpu-logo-breathe {
+  0%, 100% { transform: translate3d(0, -10px, 0) rotate(-0.5deg); }
+  50% { transform: translate3d(0, 10px, 0) rotate(0.5deg); }
+}
+
+.animate-gpu-blob-1 {
+  animation: gpu-float-1 8s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.animate-gpu-blob-2 {
+  animation: gpu-float-2 9s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.animate-gpu-blob-3 {
+  animation: gpu-float-3 8.5s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.animate-gpu-blob-4 {
+  animation: gpu-float-4 9.5s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.animate-gpu-logo {
+  animation: gpu-logo-breathe 4s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bp-card {
+  .bp-card,
+  .animate-gpu-blob-1,
+  .animate-gpu-blob-2,
+  .animate-gpu-blob-3,
+  .animate-gpu-blob-4,
+  .animate-gpu-logo {
+    animation: none !important;
     will-change: auto;
   }
 }

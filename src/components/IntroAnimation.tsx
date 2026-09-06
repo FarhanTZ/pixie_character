@@ -93,101 +93,47 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
         <motion.div
           key="pixar-furry-burst-intro"
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 1.08 }}
-          transition={{ duration: 0.6, ease: [0.25, 1, 0.5, 1] }}
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-center select-none overflow-hidden backdrop-blur-3xl bg-white/75"
         >
-          {/* MULTI-COLOR GRADIENT (Biru, Oranye, Kuning, Merah ke Pink, Hijau) */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* MULTI-COLOR GRADIENT (GPU Accelerated) */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden transform-gpu">
             {/* 1. Biru */}
-            <motion.div
-              animate={{
-                x: [0, 50, 0],
-                y: [0, -35, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{ duration: 6, ease: 'easeInOut', repeat: Infinity }}
-              className="absolute -top-20 -left-20 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full bg-blue-500/35 filter blur-[130px]"
-            />
+            <div className="animate-gpu-blob-1 absolute -top-20 -left-20 w-[500px] sm:w-[700px] h-[500px] sm:h-[700px] rounded-full bg-blue-500/30 filter blur-[80px] sm:blur-[110px]" />
 
             {/* 2. Oranye & Kuning */}
-            <motion.div
-              animate={{
-                x: [0, -45, 0],
-                y: [0, 35, 0],
-                scale: [1, 1.25, 1],
-              }}
-              transition={{ duration: 7, ease: 'easeInOut', repeat: Infinity }}
-              className="absolute -top-10 -right-10 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full bg-gradient-to-br from-amber-400/40 via-orange-500/35 to-yellow-300/40 filter blur-[130px]"
-            />
+            <div className="animate-gpu-blob-2 absolute -top-10 -right-10 w-[450px] sm:w-[650px] h-[450px] sm:h-[650px] rounded-full bg-gradient-to-br from-amber-400/35 via-orange-500/30 to-yellow-300/35 filter blur-[80px] sm:blur-[110px]" />
 
             {/* 3. Merah ke Pink */}
-            <motion.div
-              animate={{
-                x: [0, -35, 0],
-                y: [0, -45, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{ duration: 6.5, ease: 'easeInOut', repeat: Infinity }}
-              className="absolute -bottom-20 -right-20 w-[600px] sm:w-[800px] h-[600px] sm:h-[800px] rounded-full bg-gradient-to-tr from-rose-500/40 via-pink-500/40 to-fuchsia-400/35 filter blur-[140px]"
-            />
+            <div className="animate-gpu-blob-3 absolute -bottom-20 -right-20 w-[500px] sm:w-[700px] h-[500px] sm:h-[700px] rounded-full bg-gradient-to-tr from-rose-500/35 via-pink-500/35 to-fuchsia-400/30 filter blur-[80px] sm:blur-[110px]" />
 
             {/* 4. Hijau */}
-            <motion.div
-              animate={{
-                x: [0, 40, 0],
-                y: [0, 30, 0],
-                scale: [1, 1.18, 1],
-              }}
-              transition={{ duration: 7.5, ease: 'easeInOut', repeat: Infinity }}
-              className="absolute -bottom-20 -left-20 w-[550px] sm:w-[750px] h-[550px] sm:h-[750px] rounded-full bg-emerald-400/35 filter blur-[130px]"
-            />
+            <div className="animate-gpu-blob-4 absolute -bottom-20 -left-20 w-[450px] sm:w-[650px] h-[450px] sm:h-[650px] rounded-full bg-emerald-400/30 filter blur-[80px] sm:blur-[110px]" />
 
             {/* Center Mesh Blend */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/15 via-pink-400/20 to-yellow-300/15 backdrop-blur-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/15 via-pink-400/20 to-yellow-300/15 backdrop-blur-xl" />
           </div>
 
-          {/* BOLA-BOLA BULU DI BACKGROUND */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            {Array.from({ length: 18 }).map((_, i) => (
-              <motion.div
+          {/* BOLA-BOLA BULU DI BACKGROUND (Ringan & GPU Driven) */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden hidden sm:block">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div
                 key={`fluff-bg-particle-${i}`}
-                initial={{
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1200),
-                  y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 900),
-                  scale: Math.random() * 0.6 + 0.45,
+                style={{
+                  top: `${15 + (i * 11)}%`,
+                  left: `${10 + (i * 11)}%`,
+                  animationDuration: `${5 + (i % 4)}s`,
                 }}
-                animate={{
-                  y: [null, Math.random() * -180 - 60],
-                  x: [null, Math.random() * 100 - 50],
-                  rotate: [0, Math.random() * 360 - 180],
-                }}
-                transition={{
-                  duration: Math.random() * 4 + 3.5,
-                  repeat: Infinity,
-                  delay: Math.random() * 2,
-                  ease: 'easeInOut',
-                }}
-                className="absolute w-8 h-8 rounded-full flex items-center justify-center filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.12)] opacity-80"
+                className={`absolute w-7 h-7 rounded-full flex items-center justify-center filter drop-shadow-[0_4px_10px_rgba(0,0,0,0.1)] opacity-75 ${
+                  i % 2 === 0 ? 'animate-gpu-blob-1' : 'animate-gpu-blob-3'
+                }`}
               >
                 <svg viewBox="0 0 100 100" className="w-full h-full">
                   <circle cx="50" cy="50" r="36" fill={FUR_COLORS[i % FUR_COLORS.length]} />
-                  {Array.from({ length: 10 }).map((_, s) => {
-                    const angle = (s / 10) * 2 * Math.PI;
-                    return (
-                      <circle
-                        key={s}
-                        cx={50 + Math.cos(angle) * 35}
-                        cy={50 + Math.sin(angle) * 35}
-                        r="10"
-                        fill={FUR_COLORS[i % FUR_COLORS.length]}
-                        opacity="0.85"
-                      />
-                    );
-                  })}
                   <circle cx="42" cy="42" r="12" fill="#FFFFFF" opacity="0.4" />
                 </svg>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -209,13 +155,13 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
                     duration: 2.2,
                     ease: [0.16, 1, 0.3, 1],
                   }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center will-change-transform"
                   style={{ width: p.size, height: p.size }}
                 >
                   <svg viewBox="0 0 100 100" className="w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
                     <circle cx="50" cy="50" r="38" fill={p.color} />
-                    {Array.from({ length: 12 }).map((_, spikeIdx) => {
-                      const spikeAngle = (spikeIdx / 12) * 2 * Math.PI;
+                    {Array.from({ length: 8 }).map((_, spikeIdx) => {
+                      const spikeAngle = (spikeIdx / 8) * 2 * Math.PI;
                       const cx = 50 + Math.cos(spikeAngle) * 36;
                       const cy = 50 + Math.sin(spikeAngle) * 36;
                       return <circle key={spikeIdx} cx={cx} cy={cy} r="10" fill={p.color} opacity="0.85" />;
@@ -227,21 +173,11 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
             </div>
           )}
 
-          {/* ANIMATED PIXAR LOGO CONTAINER */}
+          {/* ANIMATED PIXAR LOGO CONTAINER (GPU Accelerated Breathing) */}
           <div className="relative z-10 flex flex-col items-center justify-center p-4 sm:p-8 w-full">
             <motion.div
               animate={
-                phase === 'idle'
-                  ? {
-                      y: [-12, 12, -12],
-                      rotate: [-1, 1, -1],
-                      transition: {
-                        duration: 3.8,
-                        ease: 'easeInOut',
-                        repeat: Infinity,
-                      },
-                    }
-                  : phase === 'squish'
+                phase === 'squish'
                   ? {
                       scaleX: [1, 1.25, 0.85],
                       scaleY: [1, 0.75, 1.2],
@@ -257,7 +193,9 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
                     }
                   : {}
               }
-              className="relative flex items-center justify-center w-[90vw] max-w-[650px] sm:max-w-[750px] md:max-w-[850px]"
+              className={`relative flex items-center justify-center w-[90vw] max-w-[650px] sm:max-w-[750px] md:max-w-[850px] ${
+                phase === 'idle' ? 'animate-gpu-logo' : ''
+              }`}
             >
               {/* Soft Ambient Glow Behind Logo */}
               <div className="absolute -inset-10 rounded-full bg-gradient-to-r from-pink-400/30 via-purple-400/25 to-cyan-400/30 filter blur-3xl opacity-70 pointer-events-none" />
