@@ -402,7 +402,7 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 flex flex-col justify-between p-3 sm:p-6 lg:p-8 select-none overflow-hidden"
+      className="fixed inset-0 z-50 flex flex-col justify-between p-2 sm:p-5 lg:p-7 select-none overflow-y-auto lg:overflow-hidden bg-[#070709]"
     >
       {/* 1. SEPARATE CHARACTER BACKGROUND LAYER */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -411,21 +411,22 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
           alt="Battle Stage Background"
           className="w-full h-full object-cover filter brightness-105"
         />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
       </div>
 
       {/* 2. TOP HUD BAR */}
-      <header className="relative z-20 flex flex-col sm:flex-row items-center justify-between gap-3 w-full max-w-7xl mx-auto">
+      <header className="relative z-20 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-4 w-full max-w-7xl mx-auto mb-2 sm:mb-3">
         {/* Player Stats */}
-        <div className="flex items-center gap-3 bg-white/25 backdrop-blur-2xl px-4 py-2 rounded-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.25)] w-full sm:w-auto">
-          <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-white/80 bg-black/30 flex items-center justify-center shadow-md">
+        <div className="flex items-center gap-2 sm:gap-3 bg-white/20 backdrop-blur-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.25)] flex-1 sm:flex-initial min-w-[200px]">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-white/80 bg-black/30 flex items-center justify-center shadow-md shrink-0">
             <img src={character.characterImage} alt={character.name} className="w-full h-full object-cover scale-150" />
           </div>
-          <div className="flex flex-col flex-1">
-            <div className="flex justify-between items-center text-xs font-mono font-bold text-white mb-1 drop-shadow">
-              <span>{character.name}</span>
-              <span className="text-emerald-300 font-black">{playerHp}% SHIELD</span>
+          <div className="flex flex-col flex-1 min-w-0">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs font-mono font-bold text-white mb-0.5 sm:mb-1 drop-shadow">
+              <span className="truncate pr-1">{character.name}</span>
+              <span className="text-emerald-300 font-black shrink-0">{playerHp}%</span>
             </div>
-            <div className="w-36 sm:w-48 h-2.5 bg-black/40 rounded-full overflow-hidden border border-white/40 shadow-inner">
+            <div className="w-full sm:w-40 h-2 bg-black/50 rounded-full overflow-hidden border border-white/40 shadow-inner">
               <motion.div
                 animate={{ width: `${playerHp}%` }}
                 className="h-full bg-gradient-to-r from-emerald-400 to-teal-300 shadow-[0_0_10px_#34d399]"
@@ -435,10 +436,10 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
         </div>
 
         {/* Center Score, Difficulty Badge, & Combo Badge */}
-        <div className="flex items-center gap-3 sm:gap-4 bg-white/25 backdrop-blur-2xl px-4 sm:px-5 py-2 rounded-2xl border border-white/60 shadow-lg">
+        <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3.5 bg-white/20 backdrop-blur-2xl px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl border border-white/50 shadow-lg w-full sm:w-auto">
           {/* Active Difficulty Badge */}
           <span
-            className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-mono font-black uppercase tracking-wider border shadow-sm ${
+            className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[11px] font-mono font-black uppercase tracking-wider border shadow-sm shrink-0 ${
               difficulty === 'easy'
                 ? 'bg-emerald-400 text-emerald-950 border-emerald-300'
                 : difficulty === 'medium'
@@ -449,54 +450,54 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
             {difficulty}
           </span>
 
-          <div className="h-6 w-px bg-white/40" />
+          <div className="h-5 w-px bg-white/30 shrink-0" />
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-mono text-white/90 tracking-widest uppercase font-bold drop-shadow">SCORE</span>
-            <span className="text-xl sm:text-2xl font-black font-mono text-amber-300 drop-shadow-[0_0_10px_rgba(252,211,77,0.7)]">
+            <span className="text-[8px] sm:text-[9px] font-mono text-white/80 tracking-widest uppercase font-bold drop-shadow">SCORE</span>
+            <span className="text-sm sm:text-lg lg:text-xl font-black font-mono text-amber-300 drop-shadow">
               {score.toLocaleString()}
             </span>
           </div>
 
-          <div className="h-8 w-px bg-white/40" />
+          <div className="h-5 w-px bg-white/30 shrink-0" />
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-mono text-white/90 tracking-widest uppercase font-bold drop-shadow">COMBO</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-white/80 tracking-widest uppercase font-bold drop-shadow">COMBO</span>
             <motion.span
               key={combo}
-              animate={{ scale: [1.3, 1] }}
-              className="text-xl sm:text-2xl font-black font-mono text-pink-300 drop-shadow-[0_0_10px_rgba(244,114,182,0.8)]"
+              animate={{ scale: [1.25, 1] }}
+              className="text-sm sm:text-lg lg:text-xl font-black font-mono text-pink-300 drop-shadow"
             >
               {combo}x
             </motion.span>
           </div>
 
-          <div className="h-8 w-px bg-white/40" />
+          <div className="h-5 w-px bg-white/30 shrink-0" />
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-mono text-white/90 tracking-widest uppercase font-bold drop-shadow">CLEARED</span>
-            <span className="text-xl sm:text-2xl font-black font-mono text-cyan-300 drop-shadow">
+            <span className="text-[8px] sm:text-[9px] font-mono text-white/80 tracking-widest uppercase font-bold drop-shadow">CLEARED</span>
+            <span className="text-sm sm:text-lg lg:text-xl font-black font-mono text-cyan-300 drop-shadow">
               {wordsCleared}/{diffConfig.targetWords}
             </span>
           </div>
 
           <button
             onClick={onExit}
-            className="ml-2 px-3.5 py-1.5 rounded-full bg-white/30 hover:bg-white/50 border border-white/70 text-white font-mono text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95"
+            className="ml-1 sm:ml-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/25 hover:bg-white/40 border border-white/60 text-white font-mono text-[9px] sm:text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow hover:scale-105 active:scale-95 shrink-0"
           >
             ✕ EXIT
           </button>
         </div>
       </header>
 
-      {/* 3. MAIN SPLIT ARENA: KIRI (STREAM KATA JATUH + TYPING INPUT DI BAWAH) & KANAN (KARAKTER DIBUNGKUS BORDER SEPERTI DETAIL PAGE DENGAN ANIMASI FRAME) */}
-      <div className="relative z-10 flex flex-col-reverse lg:flex-row items-center justify-between max-w-7xl mx-auto w-full flex-1 gap-6 lg:gap-8 my-auto px-2 sm:px-6">
+      {/* 3. MAIN SPLIT ARENA: KIRI (STREAM KATA JATUH + TYPING INPUT) & KANAN (KARAKTER CANVAS) */}
+      <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between max-w-7xl mx-auto w-full flex-1 gap-3 sm:gap-5 lg:gap-8 my-auto px-1 sm:px-4">
         
-        {/* BAGIAN KIRI: STREAM KATA MUNCUL DARI ATAS & TYPING DECK DI BAWAHNYA */}
-        <div className="relative w-full lg:w-[54%] flex flex-col items-center justify-between h-[48vh] sm:h-[58vh] lg:h-[72vh]">
+        {/* BAGIAN KIRI: STREAM KATA MUNCUL DARI ATAS & TYPING DECK */}
+        <div className="relative w-full lg:w-[56%] flex flex-col items-center justify-between h-[42vh] sm:h-[48vh] lg:h-[68vh]">
           
-          {/* FALLING WORDS STREAM ARENA (MUNCUL DARI ATAS) */}
-          <div className="relative w-full flex-1 rounded-3xl bg-black/30 backdrop-blur-xl border border-white/30 overflow-hidden shadow-2xl p-4">
+          {/* FALLING WORDS STREAM ARENA */}
+          <div className="relative w-full flex-1 rounded-2xl sm:rounded-3xl bg-black/40 backdrop-blur-xl border border-white/30 overflow-hidden shadow-2xl p-2 sm:p-4">
             
             {/* 3 Falling Lanes Indicator Lines */}
             <div className="absolute inset-0 grid grid-cols-3 divide-x divide-white/10 pointer-events-none" />
@@ -513,7 +514,7 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
                   style={{ top: `${item.y}%` }}
                 >
                   <div
-                    className={`px-4 py-1.5 rounded-2xl font-mono font-black text-sm sm:text-base lg:text-lg tracking-widest shadow-xl flex items-center gap-1 border ${
+                    className={`px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl font-mono font-black text-xs sm:text-base lg:text-lg tracking-wider sm:tracking-widest shadow-xl flex items-center gap-1 border transition-transform ${
                       isTargetPrefix
                         ? 'bg-amber-400 text-black border-yellow-200 scale-110 shadow-[0_0_20px_#facc15]'
                         : item.y > 75
@@ -532,10 +533,10 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
               {damageNumbers.map((d) => (
                 <motion.div
                   key={d.id}
-                  initial={{ opacity: 1, y: 0, scale: d.isCrit ? 1.5 : 1.2 }}
-                  animate={{ opacity: 0, y: -70, scale: d.isCrit ? 2.0 : 1.4 }}
+                  initial={{ opacity: 1, y: 0, scale: d.isCrit ? 1.4 : 1.1 }}
+                  animate={{ opacity: 0, y: -50, scale: d.isCrit ? 1.8 : 1.3 }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className={`absolute text-2xl sm:text-4xl font-black font-mono drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] whitespace-nowrap ${
+                  className={`absolute text-xl sm:text-3xl font-black font-mono drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] whitespace-nowrap ${
                     d.isCrit ? 'text-amber-300' : 'text-cyan-300'
                   }`}
                   style={{ transform: `translate(${d.x}px, ${d.y}px)` }}
@@ -546,11 +547,11 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
             </div>
 
             {/* Bottom Danger Line */}
-            <div className="absolute bottom-2 inset-x-0 h-1 bg-gradient-to-r from-rose-500/20 via-rose-500/80 to-rose-500/20 pointer-events-none animate-pulse" />
+            <div className="absolute bottom-1 sm:bottom-2 inset-x-0 h-1 bg-gradient-to-r from-rose-500/20 via-rose-500/80 to-rose-500/20 pointer-events-none animate-pulse" />
           </div>
 
-          {/* TYPING INPUT & ULTIMATE BAR DI SEBELAH KIRI BAWAH */}
-          <div className="relative w-full flex flex-col items-center gap-2.5 mt-3.5 sm:mt-4">
+          {/* TYPING INPUT & ULTIMATE BAR */}
+          <div className="relative w-full flex flex-col items-center gap-2 mt-2 sm:mt-3">
             {/* INPUT FORM */}
             <div className="relative w-full">
               <input
@@ -560,17 +561,17 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
                 onChange={handleInputChange}
                 placeholder="TYPE FALLING WORD..."
                 autoFocus
-                className="w-full text-center py-3 sm:py-3.5 px-6 rounded-full bg-white/35 border-2 border-white/90 focus:border-cyan-300 focus:outline-none text-white font-mono font-black text-lg sm:text-xl lg:text-2xl tracking-[0.25em] uppercase backdrop-blur-2xl shadow-[0_12px_36px_rgba(0,0,0,0.3)] placeholder:text-white/60 drop-shadow"
+                className="w-full text-center py-2.5 sm:py-3.5 px-4 sm:px-6 rounded-full bg-white/35 border-2 border-white/90 focus:border-cyan-300 focus:outline-none text-white font-mono font-black text-base sm:text-xl lg:text-2xl tracking-[0.2em] sm:tracking-[0.25em] uppercase backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.3)] placeholder:text-white/60 drop-shadow"
               />
             </div>
 
             {/* ULTIMATE SKILL BUTTON / BAR */}
-            <div className="flex items-center justify-between w-full px-2">
-              <div className="flex items-center gap-3 flex-1 mr-4">
-                <span className="text-[10px] sm:text-xs font-mono font-black text-white tracking-widest drop-shadow">
+            <div className="flex items-center justify-between w-full px-1 gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 flex-1">
+                <span className="text-[9px] sm:text-xs font-mono font-black text-white tracking-wider shrink-0 drop-shadow">
                   ULTIMATE:
                 </span>
-                <div className="flex-1 h-3 bg-black/40 rounded-full overflow-hidden border border-white/50 shadow-inner">
+                <div className="flex-1 h-2.5 sm:h-3 bg-black/40 rounded-full overflow-hidden border border-white/50 shadow-inner">
                   <motion.div
                     animate={{ width: `${energy}%` }}
                     className="h-full bg-gradient-to-r from-amber-400 via-pink-400 to-cyan-300 shadow-[0_0_12px_rgba(244,114,182,0.8)]"
@@ -581,9 +582,9 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
               <motion.button
                 onClick={handleUnleashUltimate}
                 disabled={energy < 100}
-                whileHover={energy >= 100 ? { scale: 1.06 } : {}}
-                whileTap={energy >= 100 ? { scale: 0.94 } : {}}
-                className={`px-5 sm:px-6 py-2 rounded-full font-mono font-black text-xs uppercase tracking-widest transition-all cursor-pointer shadow-lg ${
+                whileHover={energy >= 100 ? { scale: 1.05 } : {}}
+                whileTap={energy >= 100 ? { scale: 0.95 } : {}}
+                className={`px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full font-mono font-black text-[10px] sm:text-xs uppercase tracking-wider sm:tracking-widest transition-all cursor-pointer shadow shrink-0 ${
                   energy >= 100
                     ? 'bg-gradient-to-r from-amber-400 via-pink-400 to-cyan-300 text-black animate-pulse shadow-[0_0_20px_rgba(244,114,182,0.9)]'
                     : 'bg-white/20 text-white/50 border border-white/30 cursor-not-allowed backdrop-blur-md'
@@ -596,11 +597,11 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
 
         </div>
 
-        {/* BAGIAN KANAN: KARAKTER DIBUNGKUS BORDER SEPERTI DI DETAIL PAGE DENGAN ANIMASI 96-FRAME CANVAS */}
-        <div className="relative w-full lg:w-[46%] h-[38vh] sm:h-[50vh] lg:h-[72vh] flex items-center justify-center">
+        {/* BAGIAN KANAN: KARAKTER CANVAS */}
+        <div className="relative w-full lg:w-[44%] h-[26vh] sm:h-[35vh] lg:h-[68vh] flex items-center justify-center">
           
-          {/* FROSTED BORDER FRAME CONTAINER (SEPERTI DI DETAIL PAGE) */}
-          <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.5)] border-2 border-white/30 backdrop-blur-md bg-white/10 p-2 sm:p-3 flex items-center justify-center">
+          {/* FROSTED BORDER FRAME CONTAINER */}
+          <div className="relative w-full h-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.5)] border-2 border-white/30 backdrop-blur-md bg-white/10 p-1.5 sm:p-3 flex items-center justify-center">
             
             {/* Ambient Element Glow */}
             <div
@@ -612,15 +613,15 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
             <AnimatePresence>
               {characterSpeech && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.6, y: 15 }}
+                  initial={{ opacity: 0, scale: 0.7, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.8, y: -10 }}
                   transition={{ type: 'spring', damping: 15, stiffness: 300 }}
-                  className="absolute top-3 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-xs z-40 bg-black/80 backdrop-blur-xl border-2 border-amber-300/90 px-4 py-2 rounded-2xl shadow-[0_0_25px_rgba(251,191,36,0.6)]"
+                  className="absolute top-2 left-2 right-2 sm:left-auto sm:right-4 sm:max-w-xs z-40 bg-black/85 backdrop-blur-xl border-2 border-amber-300/90 px-3 py-1.5 rounded-xl sm:rounded-2xl shadow-[0_0_25px_rgba(251,191,36,0.6)]"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-base sm:text-lg animate-bounce">💬</span>
-                    <p className="text-xs sm:text-sm font-mono font-black text-amber-300 drop-shadow">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm sm:text-base animate-bounce">💬</span>
+                    <p className="text-[11px] sm:text-xs font-mono font-black text-amber-300 drop-shadow truncate">
                       {characterSpeech}
                     </p>
                   </div>
@@ -629,26 +630,26 @@ export const TypingBattleArena: React.FC<TypingBattleArenaProps> = ({ character,
             </AnimatePresence>
 
             {/* Character Header Label Inside Border */}
-            <div className="absolute top-4 left-4 z-20 flex items-center gap-2 pointer-events-none">
-              <span className="px-3 py-1 rounded-full bg-black/40 border border-white/40 text-[10px] font-mono font-black text-white tracking-widest uppercase backdrop-blur-md">
+            <div className="absolute top-2.5 sm:top-3.5 left-2.5 sm:left-3.5 z-20 flex items-center gap-1.5 pointer-events-none">
+              <span className="px-2 sm:px-2.5 py-0.5 rounded-full bg-black/50 border border-white/40 text-[9px] sm:text-[10px] font-mono font-black text-white tracking-wider uppercase backdrop-blur-md">
                 {character.name}
               </span>
               <span
-                className="px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase border border-white/30 text-white"
+                className="px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] font-mono font-bold uppercase border border-white/30 text-white"
                 style={{ backgroundColor: `${character.themeColor}40` }}
               >
                 {character.element}
               </span>
             </div>
 
-            {/* HIGH-PERFORMANCE 96-FRAME CANVAS ANIMATION (Menyesuaikan aksi ketikan real-time) */}
+            {/* HIGH-PERFORMANCE 96-FRAME CANVAS ANIMATION */}
             <canvas
               ref={canvasRef}
-              className="w-full h-full object-cover rounded-2xl pointer-events-none"
+              className="w-full h-full object-contain sm:object-cover rounded-xl sm:rounded-2xl pointer-events-none"
             />
 
             {/* Subtle Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none rounded-xl sm:rounded-2xl" />
           </div>
         </div>
       </div>
