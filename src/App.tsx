@@ -157,7 +157,7 @@ export default function App() {
 
   return (
     <div className="relative w-full min-h-screen bg-[#070709] text-white">
-      {/* Pixar Magical Particle Spark Cursor Trail */}
+      {/* Pixar Magical Particle Spark Cursor Trail (Desktop Pointer Only) */}
       <CustomCursor character={showIntro ? undefined : activeChar} />
 
       {/* Pixar Iconic Opening Intro Animation */}
