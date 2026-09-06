@@ -44,10 +44,10 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({ character }) => {
   }, [character]);
 
   useEffect(() => {
-    // Detect touch-only mobile devices to save battery & CPU
+    // Detect touch-only mobile devices to save battery & CPU - completely bypass loop
     const isTouchDevice = 'ontouchstart' in window && navigator.maxTouchPoints > 0;
-    if (isTouchDevice && window.innerWidth < 768) {
-      mouseRef.current.isTouch = true;
+    if (isTouchDevice || window.innerWidth < 768) {
+      return;
     }
 
     const canvas = canvasRef.current;
