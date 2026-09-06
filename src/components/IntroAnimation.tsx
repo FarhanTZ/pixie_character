@@ -264,8 +264,12 @@ export const IntroAnimation: React.FC<IntroAnimationProps> = ({ onComplete }) =>
 
               {/* Pixar Logo */}
               <img
-                src="/assets/pixar/logo/logo.png"
+                src="/assets/pixar/logo/logo.webp"
                 alt="Pixar Logo"
+                fetchPriority="high"
+                loading="eager"
+                width="650"
+                height="239"
                 className="relative z-10 w-full h-auto object-contain filter drop-shadow-[0_20px_45px_rgba(0,0,0,0.18)] pointer-events-none"
               />
             </motion.div>

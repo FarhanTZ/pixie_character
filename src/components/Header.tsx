@@ -12,8 +12,10 @@ export const Header: React.FC = () => {
         className="flex items-center"
       >
         <img
-          src="/assets/pixar/logo/logo.png"
+          src="/assets/pixar/logo/logo.webp"
           alt="Pixar Logo"
+          width="130"
+          height="48"
           className="h-9 sm:h-11 md:h-12 w-auto object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
         />
       </motion.div>

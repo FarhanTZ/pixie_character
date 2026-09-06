@@ -155,6 +155,9 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
           <img
             src={character.bgImage}
             alt={`${character.name} Background`}
+            fetchPriority="high"
+            width="1920"
+            height="1080"
             className="w-full h-full object-cover object-center pixar-img-smooth"
           />
         </motion.div>
@@ -175,6 +178,9 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
             <img
               src={character.characterImage}
               alt={character.name}
+              fetchPriority="high"
+              width="1200"
+              height="800"
               className={`w-auto h-[90vh] sm:h-[94vh] max-w-[96vw] sm:max-w-[92vw] object-contain pixar-img-smooth drop-shadow-[0_20px_45px_rgba(0,0,0,0.55)] transition-opacity duration-500 ${
                 isVideoActive ? 'opacity-0' : 'opacity-100'
               }`}
@@ -196,7 +202,7 @@ export const PixarStage: React.FC<PixarStageProps> = ({ character, direction }) 
           muted
           loop
           playsInline
-          preload="auto"
+          preload="none"
           className="w-full h-full object-cover object-center"
         />
       </div>
